@@ -1,0 +1,81 @@
+### Spoonacular API Requests
+### Get your API key from https://spoonacular.com/food-api
+### Replace YOUR_API_KEY with your actual API key
+
+@apiKey = 84b100a2d430471bb2fef55d550c55f9
+@baseUrl = https://api.spoonacular.com
+
+### Get Random Recipe
+GET {{baseUrl}}/recipes/random?apiKey={{apiKey}}&number=1
+
+###
+
+### Search Recipes - Basic
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&number=10
+
+###
+
+### Search Recipes - With Cuisine (Chinese)
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&cuisine=chinese&number=10&offset=0
+
+###
+
+### Search Recipes - Include Ingredients
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&includeIngredients=milk,wheat&number=10&offset=0
+
+###
+
+### Search Recipes - Exclude Ingredients
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&excludeIngredients=tomato&number=10&offset=0
+
+###
+
+### Search Recipes - By Meal Type (Breakfast)
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&type=breakfast&number=10&offset=0
+
+###
+
+### Search Recipes - Full Example (All Parameters)
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&cuisine=chinese&includeIngredients=milk,wheat&excludeIngredients=tomato&type=main course&maxReadyTime=45&offset=50&number=10&addRecipeInformation=true
+
+###
+
+### Search Recipes - Italian with Chicken
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&cuisine=italian&includeIngredients=chicken&number=10&offset=0&addRecipeInformation=true
+
+###
+
+### Search Recipes - Mexican Dessert
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&cuisine=mexican&type=dessert&number=10&offset=0&addRecipeInformation=true
+
+###
+
+### Search Recipes - Vegetarian Main Course
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&type=main course&excludeIngredients=meat,chicken,beef,pork&number=10&offset=0&addRecipeInformation=true
+
+###
+
+### Search Recipes - Asian Soup
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&cuisine=asian&type=soup&number=10&offset=25&addRecipeInformation=true
+
+###
+
+### Search Recipes - Quick Meals (30 minutes or less)
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&maxReadyTime=30&number=10&offset=0&addRecipeInformation=true
+
+###
+
+### Search Recipes - Quick Italian (45 minutes)
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&cuisine=italian&maxReadyTime=45&number=10&offset=0&addRecipeInformation=true
+
+###
+
+### Search Recipes - Quick Breakfast (20 minutes)
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&type=breakfast&maxReadyTime=20&number=10&offset=0&addRecipeInformation=true
+
+###
+
+### Search Recipes - Full Example with Max Time
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&cuisine=mexican&includeIngredients=chicken&excludeIngredients=nuts&type=main course&maxReadyTime=60&offset=10&number=10&addRecipeInformation=true
+
+###
