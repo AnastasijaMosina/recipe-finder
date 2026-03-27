@@ -88,3 +88,20 @@ For scalable apps, use **multiple specialized contexts**:
 | Complexity  | ✅ Simple         | ❌ Complex          |
 
 **Lesson:** Always prefer specialized contexts over monolithic ones.
+
+---
+
+## API Pattern: Server Route Handler Proxy
+
+Instead of calling Spoonacular directly from the browser, the frontend now calls internal routes (`/api/recipes/random`, `/api/recipes/search`) and those routes call Spoonacular.
+
+### Why this is better
+
+- **Security**: API key stays on the server, not exposed in browser requests.
+- **Control**: One central place for error handling, retries, logging, and rate-limit handling.
+- **Maintainability**: UI depends on our internal API contract, not directly on third-party response shapes.
+- **Scalability**: Easier to swap providers, add caching, or combine multiple APIs later.
+
+### Tradeoff
+
+- Adds one extra network hop, but this is usually worth it for production safety and cleaner architecture.

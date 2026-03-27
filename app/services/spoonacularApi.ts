@@ -1,5 +1,4 @@
-const API_BASE_URL = 'https://api.spoonacular.com';
-const API_KEY = process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY || '';
+const API_BASE_URL = '/api/recipes';
 
 export interface Recipe {
   id: number;
@@ -29,16 +28,40 @@ export interface RandomRecipeResponse {
   recipes: Recipe[];
 }
 
+interface RandomRecipeApiResponse {
+  recipe?: Recipe;
+  error?: string;
+}
+
+interface SearchRecipeApiResponse {
+  results?: Recipe[];
+  error?: string;
+}
+
 export const spoonacularApi = {
   async getRandomRecipe(): Promise<Recipe> {
-    const response = await fetch(`${API_BASE_URL}/recipes/random?apiKey=${API_KEY}&number=1`);
+    const response = await fetch(`${API_BASE_URL}/random`);
 
     if (!response.ok) {
-      throw new Error(`Failed to fetch random recipe: ${response.statusText}`);
+      let message = `Failed to fetch random recipe: ${response.statusText}`;
+      try {
+        const errorData: RandomRecipeApiResponse = await response.json();
+        if (errorData.error) {
+          message = errorData.error;
+        }
+      } catch {
+        // Ignore JSON parse failures and use status text fallback
+      }
+      throw new Error(message);
     }
 
-    const data: RandomRecipeResponse = await response.json();
-    return data.recipes[0];
+    const data: RandomRecipeApiResponse = await response.json();
+
+    if (!data.recipe) {
+      throw new Error('No recipe returned.');
+    }
+
+    return data.recipe;
   },
 
   async searchRecipes(params: {
@@ -50,7 +73,6 @@ export const spoonacularApi = {
   }): Promise<Recipe[]> {
     const queryParams = new URLSearchParams();
 
-    if (API_KEY) queryParams.append('apiKey', API_KEY);
     if (params.cuisine) queryParams.append('cuisine', params.cuisine);
     if (params.includeIngredients)
       queryParams.append('includeIngredients', params.includeIngredients);
@@ -62,16 +84,22 @@ export const spoonacularApi = {
     // Add random offset between 0 and 100
     // const randomOffset = Math.floor(Math.random() * 101);
     // queryParams.append('offset', randomOffset.toString());
-    queryParams.append('number', '10');
-    queryParams.append('addRecipeInformation', 'true');
-
-    const response = await fetch(`${API_BASE_URL}/recipes/complexSearch?${queryParams.toString()}`);
+    const response = await fetch(`${API_BASE_URL}/search?${queryParams.toString()}`);
 
     if (!response.ok) {
-      throw new Error(`Failed to search recipes: ${response.statusText}`);
+      let message = `Failed to search recipes: ${response.statusText}`;
+      try {
+        const errorData: SearchRecipeApiResponse = await response.json();
+        if (errorData.error) {
+          message = errorData.error;
+        }
+      } catch {
+        // Ignore JSON parse failures and use status text fallback
+      }
+      throw new Error(message);
     }
 
-    const data = await response.json();
+    const data: SearchRecipeApiResponse = await response.json();
     return data.results || [];
   },
 };
