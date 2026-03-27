@@ -148,3 +148,15 @@ All Spoonacular requests now go through `app/utils/fetchUtils.ts` instead of raw
 - **Resilience** — transient network blips or API hiccups don't immediately surface as errors
 - **User experience** — silent retry before showing an error message
 - **Predictable** — all timeouts and retry rules are in one place
+
+---
+
+## 5. SWR for Caching & Deduplication
+
+We added SWR to replace manual request state on Home/Search pages.
+
+### Why this helps
+
+- **Caching** — repeated searches can reuse recent results instead of refetching immediately.
+- **Deduplication** — simultaneous identical requests are merged into one network call.
+- **Cleaner code** — loading/error/data state is managed by SWR hooks.

@@ -1,12 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import useSWR from 'swr';
 import '../css/recipeSearch.css';
 import RecipeSearchForm from '../components/RecipeSearchForm';
 import SearchResults from '../components/SearchResults';
 import ErrorMessage from '../components/ErrorMessage';
-import { useState } from 'react';
-import { Recipe, spoonacularApi } from '../services/spoonacularApi';
+import { spoonacularApi } from '../services/spoonacularApi';
+
+interface SearchFilters {
+  cuisine?: string;
+  includeIngredients?: string;
+  excludeIngredients?: string;
+  type?: string;
+  maxReadyTime?: string;
+}
 
 const SearchPage = () => {
   const [cuisineType, setCuisineType] = useState('');
@@ -14,34 +23,34 @@ const SearchPage = () => {
   const [excludeIngredients, setExcludeIngredients] = useState('');
   const [mealType, setMealType] = useState('');
   const [maxReadyTime, setMaxReadyTime] = useState('');
-  const [searchResults, setSearchResults] = useState<Recipe[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
+  const [submittedFilters, setSubmittedFilters] = useState<SearchFilters | null>(null);
 
   const router = useRouter();
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSearching(true);
-    setSearchError(null);
-    setSearchResults([]);
+  const searchKey = submittedFilters ? (['recipe-search', submittedFilters] as const) : null;
 
-    try {
-      const results = await spoonacularApi.searchRecipes({
-        cuisine: cuisineType,
-        includeIngredients: includeIngredients,
-        excludeIngredients: excludeIngredients,
-        type: mealType,
-        maxReadyTime: maxReadyTime,
-      });
-      setSearchResults(results);
-      console.log('Search Results:', results);
-    } catch (err) {
-      setSearchError(err instanceof Error ? err.message : 'Failed to search recipes');
-      console.error('Error searching recipes:', err);
-    } finally {
-      setIsSearching(false);
-    }
+  const {
+    data: searchResults = [],
+    error: searchError,
+    isLoading,
+    isValidating,
+  } = useSWR(searchKey, ([, filters]) => spoonacularApi.searchRecipes(filters), {
+    keepPreviousData: true,
+    revalidateIfStale: false,
+  });
+
+  const isSearching = isLoading || isValidating;
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    setSubmittedFilters({
+      cuisine: cuisineType || undefined,
+      includeIngredients: includeIngredients || undefined,
+      excludeIngredients: excludeIngredients || undefined,
+      type: mealType || undefined,
+      maxReadyTime: maxReadyTime || undefined,
+    });
   };
 
   return (
@@ -65,7 +74,14 @@ const SearchPage = () => {
           isSearching={isSearching}
         />
 
-        {searchError && <ErrorMessage message={searchError} style={{ marginTop: '1.5rem' }} />}
+        {searchError && (
+          <ErrorMessage
+            message={
+              searchError instanceof Error ? searchError.message : 'Failed to search recipes'
+            }
+            style={{ marginTop: '1.5rem' }}
+          />
+        )}
 
         <SearchResults results={searchResults} />
       </div>

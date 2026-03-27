@@ -4,10 +4,10 @@ A practical roadmap to improve this project using stronger frontend architecture
 
 ## Phase 1 — Security & API Architecture (Highest Priority)
 
-1. Move Spoonacular requests from client-side code to server-side route handlers.
-2. Keep API key server-only (remove public exposure pattern).
-3. Add centralized API error handling (status mapping + user-friendly messages).
-4. Add request timeout/retry strategy for unstable network/API failures.
+1. Move Spoonacular requests from client-side code to server-side route handlers. ✅
+2. Keep API key server-only (remove public exposure pattern). ✅
+3. Add centralized API error handling (status mapping + user-friendly messages). ✅
+4. Add request timeout/retry strategy for unstable network/API failures. ✅
 
 **You learn:** secure API boundaries, BFF pattern, production-safe env usage.
 
@@ -15,7 +15,7 @@ A practical roadmap to improve this project using stronger frontend architecture
 
 ## Phase 2 — Data Fetching Pattern
 
-5. Introduce TanStack Query (or SWR) for request caching and deduplication.
+5. Introduce TanStack Query (or SWR) for request caching and deduplication. ✅
 6. Replace manual loading/error state with query states.
 7. Add stale time and background refetch strategy.
 8. Normalize response data in one mapping layer before UI consumption.
