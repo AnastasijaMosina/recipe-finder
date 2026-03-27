@@ -151,12 +151,12 @@ All Spoonacular requests now go through `app/utils/fetchUtils.ts` instead of raw
 
 ---
 
-## 5. SWR for Caching & Deduplication
+## 5. TanStack Query for Caching & Deduplication
 
-We added SWR to replace manual request state on Home/Search pages.
+We switched from SWR to TanStack Query to replace manual request state on Home/Search pages.
 
 ### Why this helps
 
 - **Caching** — repeated searches can reuse recent results instead of refetching immediately.
 - **Deduplication** — simultaneous identical requests are merged into one network call.
-- **Cleaner code** — loading/error/data state is managed by SWR hooks.
+- **Cleaner code** — loading/error/data state is managed by query hooks.

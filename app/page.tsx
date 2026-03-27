@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import useSWRMutation from 'swr/mutation';
+import { useMutation } from '@tanstack/react-query';
 import './css/recipeSearch.css';
 import { spoonacularApi } from './services/spoonacularApi';
 import RandomRecipeButton from './components/RandomRecipeButton';
@@ -9,22 +9,21 @@ import RecipeCard from './components/RecipeCard';
 import ErrorMessage from './components/ErrorMessage';
 import DetailedSearchButton from './components/DetailedSearchButton';
 
-const randomRecipeFetcher = async () => {
-  return spoonacularApi.getRandomRecipe();
-};
-
 export default function Home() {
   const router = useRouter();
 
   const {
     data: randomRecipe,
     error,
-    isMutating: isLoading,
-    trigger,
-  } = useSWRMutation('random-recipe', randomRecipeFetcher);
+    isPending: isLoading,
+    mutateAsync,
+  } = useMutation({
+    mutationKey: ['random-recipe'],
+    mutationFn: spoonacularApi.getRandomRecipe,
+  });
 
   const handleRandomRecipe = async () => {
-    await trigger();
+    await mutateAsync();
   };
 
   return (

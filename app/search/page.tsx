@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import useSWR from 'swr';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import '../css/recipeSearch.css';
 import RecipeSearchForm from '../components/RecipeSearchForm';
 import SearchResults from '../components/SearchResults';
@@ -27,19 +27,27 @@ const SearchPage = () => {
 
   const router = useRouter();
 
-  const searchKey = submittedFilters ? (['recipe-search', submittedFilters] as const) : null;
+  const searchKey = ['recipe-search', submittedFilters] as const;
 
   const {
     data: searchResults = [],
     error: searchError,
-    isLoading,
-    isValidating,
-  } = useSWR(searchKey, ([, filters]) => spoonacularApi.searchRecipes(filters), {
-    keepPreviousData: true,
-    revalidateIfStale: false,
+    isPending,
+    isFetching,
+  } = useQuery({
+    queryKey: searchKey,
+    queryFn: ({ queryKey }) => {
+      const [, filters] = queryKey;
+      if (!filters) {
+        return Promise.resolve([]);
+      }
+      return spoonacularApi.searchRecipes(filters);
+    },
+    enabled: !!submittedFilters,
+    placeholderData: keepPreviousData,
   });
 
-  const isSearching = isLoading || isValidating;
+  const isSearching = isPending || isFetching;
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
