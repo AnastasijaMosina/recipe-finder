@@ -16,7 +16,7 @@ A practical roadmap to improve this project using stronger frontend architecture
 ## Phase 2 — Data Fetching Pattern
 
 5. Introduce TanStack Query (or SWR) for request caching and deduplication. ✅
-6. Replace manual loading/error state with query states.
+6. Replace manual loading/error state with query states. ✅
 7. Add stale time and background refetch strategy.
 8. Normalize response data in one mapping layer before UI consumption.
 

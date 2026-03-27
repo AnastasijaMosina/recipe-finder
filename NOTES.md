@@ -160,3 +160,20 @@ We added SWR to replace manual request state on Home/Search pages.
 - **Caching** — repeated searches can reuse recent results instead of refetching immediately.
 - **Deduplication** — simultaneous identical requests are merged into one network call.
 - **Cleaner code** — loading/error/data state is managed by SWR hooks.
+
+---
+
+## 6. Query-State Instead of Manual Request State
+
+(this change is done part of step 5 - removing manual error loading hooks with SWR)
+We removed manual request flags and now rely on SWR state directly.
+
+### What changed
+
+- Home uses `isMutating` + `error` from `useSWRMutation`.
+- Search uses `isLoading` / `isValidating` + `error` from `useSWR`.
+
+### Why this is better
+
+- Less custom state logic to maintain.
+- Fewer sync bugs between UI state and request lifecycle.
