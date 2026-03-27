@@ -111,3 +111,22 @@ Instead of calling Spoonacular directly from the browser, the frontend now calls
 - We removed `NEXT_PUBLIC_SPOONACULAR_API_KEY` fallback so the key is never exposed to browser code.
 - This reduces accidental secret leaks and follows production security best practices.
 - It also enforces a clear boundary: frontend calls our API routes, server handles third-party secrets.
+
+---
+
+## 3. Centralized API Error Handling
+
+All API error logic lives in `app/utils/apiErrorHandler.ts` instead of being scattered across route files.
+
+### How it works
+
+- `ApiError` — structured error class with `statusCode` and `userMessage`
+- `mapSpoonacularError(status)` — maps known HTTP codes to user-friendly messages
+- `errorResponse(error)` — returns a consistent `NextResponse` JSON shape
+
+### Why this is better
+
+- **Single source of truth** — fix or adjust error messages in one place
+- **User-friendly** — UI gets readable messages, not raw HTTP status text
+- **Consistent shape** — all error responses have the same JSON structure
+- **Extensible** — add new status mappings without touching route files

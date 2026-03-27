@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Recipe } from '../../../services/spoonacularApi';
+import { mapSpoonacularError, errorResponse, ApiError } from '../../../utils/apiErrorHandler';
 
 const API_BASE_URL = 'https://api.spoonacular.com';
 const API_KEY = process.env.SPOONACULAR_API_KEY || '';
@@ -10,10 +11,8 @@ interface SearchRecipeResponse {
 
 export async function GET(request: NextRequest) {
   if (!API_KEY) {
-    return NextResponse.json(
-      { error: 'Spoonacular API key is not configured. Set SPOONACULAR_API_KEY.' },
-      { status: 500 }
-    );
+    const error = new ApiError(500, 'Server configuration error. Please contact support.');
+    return errorResponse(error);
   }
 
   try {
@@ -48,16 +47,15 @@ export async function GET(request: NextRequest) {
     );
 
     if (!response.ok) {
-      return NextResponse.json(
-        { error: `Failed to search recipes: ${response.statusText}` },
-        { status: response.status }
-      );
+      const mappedError = mapSpoonacularError(response.status);
+      return errorResponse(mappedError);
     }
 
     const data: SearchRecipeResponse = await response.json();
 
     return NextResponse.json({ results: data.results || [] });
-  } catch {
-    return NextResponse.json({ error: 'Unexpected error searching recipes.' }, { status: 500 });
+  } catch (err) {
+    const error = new ApiError(500, 'An unexpected error occurred. Please try again.', String(err));
+    return errorResponse(error);
   }
 }
