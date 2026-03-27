@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Recipe } from '../../../services/spoonacularApi';
 
 const API_BASE_URL = 'https://api.spoonacular.com';
-const API_KEY =
-  process.env.SPOONACULAR_API_KEY || process.env.NEXT_PUBLIC_SPOONACULAR_API_KEY || '';
+const API_KEY = process.env.SPOONACULAR_API_KEY || '';
 
 interface SearchRecipeResponse {
   results?: Recipe[];
@@ -11,7 +10,10 @@ interface SearchRecipeResponse {
 
 export async function GET(request: NextRequest) {
   if (!API_KEY) {
-    return NextResponse.json({ error: 'Spoonacular API key is not configured.' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Spoonacular API key is not configured. Set SPOONACULAR_API_KEY.' },
+      { status: 500 }
+    );
   }
 
   try {

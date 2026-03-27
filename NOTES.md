@@ -91,7 +91,7 @@ For scalable apps, use **multiple specialized contexts**:
 
 ---
 
-## API Pattern: Server Route Handler Proxy
+## 1. API Pattern: Server Route Handler Proxy
 
 Instead of calling Spoonacular directly from the browser, the frontend now calls internal routes (`/api/recipes/random`, `/api/recipes/search`) and those routes call Spoonacular.
 
@@ -105,3 +105,9 @@ Instead of calling Spoonacular directly from the browser, the frontend now calls
 ### Tradeoff
 
 - Adds one extra network hop, but this is usually worth it for production safety and cleaner architecture.
+
+### 2. Why we switched to `SPOONACULAR_API_KEY` only
+
+- We removed `NEXT_PUBLIC_SPOONACULAR_API_KEY` fallback so the key is never exposed to browser code.
+- This reduces accidental secret leaks and follows production security best practices.
+- It also enforces a clear boundary: frontend calls our API routes, server handles third-party secrets.

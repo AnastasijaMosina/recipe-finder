@@ -79,7 +79,7 @@ Create a `.env.local` file in the root directory:
 
 ```bash
 # .env.local
-NEXT_PUBLIC_SPOONACULAR_API_KEY=your_api_key_here
+SPOONACULAR_API_KEY=your_api_key_here
 ```
 
 **Get your API key:**
@@ -195,11 +195,11 @@ recipe-finder/
 
 ## 🔑 Environment Variables
 
-| Variable                          | Description              | Required |
-| --------------------------------- | ------------------------ | -------- |
-| `NEXT_PUBLIC_SPOONACULAR_API_KEY` | Your Spoonacular API key | Yes      |
+| Variable              | Description                                 | Required |
+| --------------------- | ------------------------------------------- | -------- |
+| `SPOONACULAR_API_KEY` | Your Spoonacular API key (server-side only) | Yes      |
 
-**Note:** The `NEXT_PUBLIC_` prefix makes the variable accessible in the browser (client-side).
+**Note:** Keep this key server-side only (no `NEXT_PUBLIC_` prefix).
 
 ## 🌐 API Endpoints Used
 
