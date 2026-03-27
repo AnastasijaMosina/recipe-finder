@@ -7,14 +7,27 @@ interface SWRProviderProps {
   children: ReactNode;
 }
 
+// Search results are mostly static, so we keep them fresh for a long window.
+const SEARCH_STALE_WINDOW_MS = 15 * 60_000;
+
 export default function SWRProvider({ children }: SWRProviderProps) {
   return (
     <SWRConfig
       value={{
-        dedupingInterval: 10000, // 10seconds — if the same key is requested again within this time, SWR will return the cached data without making a new request
-        revalidateOnFocus: false, // If user switches back to the tab, we don't want to silently refetch data in the background — it's better to show them the cached data immediately
-        revalidateOnReconnect: true, // If the user loses internet and reconnects, we want fresh data — stale cache is less acceptable there
-        revalidateIfStale: false, // Tells SWR "if you already have cached data for this key, just return it — don't silently refetch in background"
+        // Dedupe identical requests within this time window.
+        dedupingInterval: SEARCH_STALE_WINDOW_MS,
+
+        // Don't refetch automatically when user returns to the tab.
+        revalidateOnFocus: false,
+
+        // Don't refetch automatically when internet reconnects.
+        revalidateOnReconnect: false,
+
+        // If cache exists, return it instead of stale-while-revalidate fetch.
+        revalidateIfStale: false,
+
+        // Backend already retries external API calls, so avoid client-side retries.
+        shouldRetryOnError: false,
       }}
     >
       {children}

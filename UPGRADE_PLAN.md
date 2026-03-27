@@ -17,7 +17,7 @@ A practical roadmap to improve this project using stronger frontend architecture
 
 5. Introduce TanStack Query (or SWR) for request caching and deduplication. ✅
 6. Replace manual loading/error state with query states. ✅
-7. Add stale time and background refetch strategy.
+7. Add stale time and background refetch strategy. ✅
 8. Normalize response data in one mapping layer before UI consumption.
 
 **You learn:** scalable async state management and cache strategy.

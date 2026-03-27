@@ -165,7 +165,7 @@ We added SWR to replace manual request state on Home/Search pages.
 
 ## 6. Query-State Instead of Manual Request State
 
-(this change is done part of step 5 - removing manual error loading hooks with SWR)
+(This was completed as part of Step 5 by replacing manual request flags with SWR query state.)
 We removed manual request flags and now rely on SWR state directly.
 
 ### What changed
@@ -177,3 +177,20 @@ We removed manual request flags and now rely on SWR state directly.
 
 - Less custom state logic to maintain.
 - Fewer sync bugs between UI state and request lifecycle.
+
+---
+
+## 7. Stale-Time & Background Refetch Strategy
+
+### Strategy used
+
+- Global stale window via `dedupingInterval = 15m`.
+- No focus-based background refetch (`revalidateOnFocus: false`).
+- No reconnect background refetch globally (`revalidateOnReconnect: false`).
+- No stale background refetch (`revalidateIfStale: false`).
+- No client-side retry on query errors (`shouldRetryOnError: false`) because retries are handled on the backend.
+
+### Why this is better
+
+- Predictable cache behavior and fewer surprise requests.
+- Better API quota usage while keeping UX responsive.
