@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Recipe } from '../../../services/spoonacularApi';
 import { mapSpoonacularError, errorResponse, ApiError } from '../../../utils/apiErrorHandler';
+import { fetchWithRetry } from '../../../utils/fetchUtils';
 
 const API_BASE_URL = 'https://api.spoonacular.com';
 const API_KEY = process.env.SPOONACULAR_API_KEY || '';
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
     queryParams.set('number', '10');
     queryParams.set('addRecipeInformation', 'true');
 
-    const response = await fetch(
+    const response = await fetchWithRetry(
       `${API_BASE_URL}/recipes/complexSearch?${queryParams.toString()}`,
       {
         next: { revalidate: 0 },

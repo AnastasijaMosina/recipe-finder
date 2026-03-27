@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Recipe } from '../../../services/spoonacularApi';
 import { mapSpoonacularError, errorResponse, ApiError } from '../../../utils/apiErrorHandler';
+import { fetchWithRetry } from '../../../utils/fetchUtils';
 
 const API_BASE_URL = 'https://api.spoonacular.com';
 const API_KEY = process.env.SPOONACULAR_API_KEY || '';
@@ -16,9 +17,12 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch(`${API_BASE_URL}/recipes/random?apiKey=${API_KEY}&number=1`, {
-      next: { revalidate: 0 },
-    });
+    const response = await fetchWithRetry(
+      `${API_BASE_URL}/recipes/random?apiKey=${API_KEY}&number=1`,
+      {
+        next: { revalidate: 0 },
+      }
+    );
 
     if (!response.ok) {
       const mappedError = mapSpoonacularError(response.status);

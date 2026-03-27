@@ -130,3 +130,21 @@ All API error logic lives in `app/utils/apiErrorHandler.ts` instead of being sca
 - **User-friendly** — UI gets readable messages, not raw HTTP status text
 - **Consistent shape** — all error responses have the same JSON structure
 - **Extensible** — add new status mappings without touching route files
+
+---
+
+## 4. Request Timeout & Retry Strategy
+
+All Spoonacular requests now go through `app/utils/fetchUtils.ts` instead of raw `fetch`.
+
+### How it works
+
+- `fetchWithTimeout` — aborts the request if it exceeds 8 seconds
+- `fetchWithRetry` — retries up to 2 times on transient failures (5xx, 429, timeout) with exponential back-off (500ms → 1s → 2s)
+- Client errors (4xx) are **not retried** — no point retrying bad input
+
+### Why this is better
+
+- **Resilience** — transient network blips or API hiccups don't immediately surface as errors
+- **User experience** — silent retry before showing an error message
+- **Predictable** — all timeouts and retry rules are in one place
