@@ -218,3 +218,41 @@ All API payloads are normalized in `app/services/recipeMappers.ts` before UI com
 - Repeated ad-hoc checks scattered across components, increasing complexity.
 - Inconsistent behavior between pages (one component handles missing fields, another crashes).
 - Harder migrations when API changes shape.
+
+---
+
+## 9. Search Form Refactor with React Hook Form
+
+The search form was refactored from manual field state (`useState` per input) to `react-hook-form`.
+
+### What changed
+
+- `app/components/RecipeSearchForm.tsx` now uses `useForm` for field registration and submit handling.
+- Form fields are registered with `register(...)` instead of controlled `value` + `onChange` pairs.
+- `app/search/page.tsx` no longer stores one state variable per input.
+- The form submits a clean `SearchFilters` object to the page, and the page only stores submitted filters for SWR.
+
+### Why this was done
+
+- Reduce repetitive boilerplate and state wiring.
+- Keep form logic in the form component instead of splitting it across form + page.
+- Prepare the codebase for the next step (schema validation with Zod) with less rework.
+
+### Pros
+
+- Less code and fewer opportunities for sync bugs between UI inputs and submission state.
+- Better separation of concerns: form state stays local to the form component.
+- Easier to add validation rules and error messages incrementally.
+- Better performance characteristics on larger forms due to uncontrolled input strategy.
+
+### Cons / Tradeoffs
+
+- Adds an external dependency and a small learning curve for the API (`register`, `handleSubmit`, `formState`).
+- Slightly less straightforward for very simple forms where a couple of `useState` calls may be enough.
+- Team consistency matters: mixing multiple form patterns can make the codebase harder to follow.
+
+### Risks if not refactored
+
+- Continued growth of repetitive state and handler code as filters increase.
+- Higher chance of mismatch bugs between local field state and submitted query state.
+- Harder adoption path for typed validation and richer form UX in the next upgrade steps.

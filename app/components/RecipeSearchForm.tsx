@@ -1,50 +1,61 @@
+'use client';
+
+import { useForm } from 'react-hook-form';
 import { CUISINES, MEAL_TYPES } from '../constants/cuisines';
 
-interface RecipeSearchFormProps {
+interface RecipeSearchFormValues {
   cuisineType: string;
-  setCuisineType: (value: string) => void;
   includeIngredients: string;
-  setIncludeIngredients: (value: string) => void;
   excludeIngredients: string;
-  setExcludeIngredients: (value: string) => void;
   mealType: string;
-  setMealType: (value: string) => void;
   maxReadyTime: string;
-  setMaxReadyTime: (value: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+}
+
+interface SearchFilters {
+  cuisine?: string;
+  includeIngredients?: string;
+  excludeIngredients?: string;
+  type?: string;
+  maxReadyTime?: string;
+}
+
+interface RecipeSearchFormProps {
+  onSubmit: (filters: SearchFilters) => void;
   isSearching: boolean;
 }
 
-export default function RecipeSearchForm({
-  cuisineType,
-  setCuisineType,
-  includeIngredients,
-  setIncludeIngredients,
-  excludeIngredients,
-  setExcludeIngredients,
-  mealType,
-  setMealType,
-  maxReadyTime,
-  setMaxReadyTime,
-  onSubmit,
-  isSearching,
-}: RecipeSearchFormProps) {
+export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearchFormProps) {
+  const { register, handleSubmit } = useForm<RecipeSearchFormValues>({
+    defaultValues: {
+      cuisineType: '',
+      includeIngredients: '',
+      excludeIngredients: '',
+      mealType: '',
+      maxReadyTime: '',
+    },
+  });
+
+  const onFormSubmit = (values: RecipeSearchFormValues) => {
+    onSubmit({
+      cuisine: values.cuisineType || undefined,
+      includeIngredients: values.includeIngredients || undefined,
+      excludeIngredients: values.excludeIngredients || undefined,
+      type: values.mealType || undefined,
+      maxReadyTime: values.maxReadyTime || undefined,
+    });
+  };
+
   return (
     <div className="search-container">
       <h2 className="search-title">Search for a Recipe</h2>
 
-      <form onSubmit={onSubmit} className="search-form">
+      <form onSubmit={handleSubmit(onFormSubmit)} className="search-form">
         {/* Cuisine Type */}
         <div className="form-field">
           <label htmlFor="cuisineType" className="form-label">
             Cuisine Type
           </label>
-          <select
-            id="cuisineType"
-            value={cuisineType}
-            onChange={(e) => setCuisineType(e.target.value)}
-            className="form-select"
-          >
+          <select id="cuisineType" {...register('cuisineType')} className="form-select">
             <option value="">Select cuisine type...</option>
             {CUISINES.map((cuisine) => (
               <option key={cuisine} value={cuisine.toLowerCase()}>
@@ -62,8 +73,7 @@ export default function RecipeSearchForm({
           <input
             type="text"
             id="includeIngredients"
-            value={includeIngredients}
-            onChange={(e) => setIncludeIngredients(e.target.value)}
+            {...register('includeIngredients')}
             placeholder="e.g., chicken, tomatoes, garlic"
             className="form-input"
           />
@@ -78,8 +88,7 @@ export default function RecipeSearchForm({
           <input
             type="text"
             id="excludeIngredients"
-            value={excludeIngredients}
-            onChange={(e) => setExcludeIngredients(e.target.value)}
+            {...register('excludeIngredients')}
             placeholder="e.g., nuts, dairy, shellfish"
             className="form-input"
           />
@@ -91,12 +100,7 @@ export default function RecipeSearchForm({
           <label htmlFor="mealType" className="form-label">
             Meal Type
           </label>
-          <select
-            id="mealType"
-            value={mealType}
-            onChange={(e) => setMealType(e.target.value)}
-            className="form-select"
-          >
+          <select id="mealType" {...register('mealType')} className="form-select">
             <option value="">Select meal type...</option>
             {MEAL_TYPES.map((type) => (
               <option key={type} value={type.toLowerCase()}>
@@ -114,8 +118,7 @@ export default function RecipeSearchForm({
           <input
             type="number"
             id="maxReadyTime"
-            value={maxReadyTime}
-            onChange={(e) => setMaxReadyTime(e.target.value)}
+            {...register('maxReadyTime')}
             placeholder="e.g., 30"
             min="1"
             className="form-input"

@@ -18,11 +18,6 @@ interface SearchFilters {
 }
 
 const SearchPage = () => {
-  const [cuisineType, setCuisineType] = useState('');
-  const [includeIngredients, setIncludeIngredients] = useState('');
-  const [excludeIngredients, setExcludeIngredients] = useState('');
-  const [mealType, setMealType] = useState('');
-  const [maxReadyTime, setMaxReadyTime] = useState('');
   const [submittedFilters, setSubmittedFilters] = useState<SearchFilters | null>(null);
 
   const router = useRouter();
@@ -41,16 +36,8 @@ const SearchPage = () => {
 
   const isSearching = isLoading || isValidating;
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    setSubmittedFilters({
-      cuisine: cuisineType || undefined,
-      includeIngredients: includeIngredients || undefined,
-      excludeIngredients: excludeIngredients || undefined,
-      type: mealType || undefined,
-      maxReadyTime: maxReadyTime || undefined,
-    });
+  const handleSearch = (filters: SearchFilters) => {
+    setSubmittedFilters(filters);
   };
 
   return (
@@ -59,20 +46,7 @@ const SearchPage = () => {
         <button onClick={() => router.push('/')} className="btn btn-primary btn-small">
           ← Back to Home
         </button>
-        <RecipeSearchForm
-          cuisineType={cuisineType}
-          setCuisineType={setCuisineType}
-          includeIngredients={includeIngredients}
-          setIncludeIngredients={setIncludeIngredients}
-          excludeIngredients={excludeIngredients}
-          setExcludeIngredients={setExcludeIngredients}
-          mealType={mealType}
-          setMealType={setMealType}
-          maxReadyTime={maxReadyTime}
-          setMaxReadyTime={setMaxReadyTime}
-          onSubmit={handleSearch}
-          isSearching={isSearching}
-        />
+        <RecipeSearchForm onSubmit={handleSearch} isSearching={isSearching} />
 
         {searchError && (
           <ErrorMessage
