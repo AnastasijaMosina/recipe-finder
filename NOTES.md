@@ -194,3 +194,27 @@ We removed manual request flags and now rely on SWR state directly.
 
 - Predictable cache behavior and fewer surprise requests.
 - Better API quota usage while keeping UX responsive.
+
+---
+
+## 8. Response Mapping Layer
+
+All API payloads are normalized in `app/services/recipeMappers.ts` before UI components consume them.
+
+### What changed
+
+- `normalizeRecipe` converts one raw payload into a stable `Recipe` shape.
+- `normalizeRecipes` converts arrays and guarantees `Recipe[]` output.
+- `spoonacularApi` now always returns normalized data.
+
+### Why this is better
+
+- UI gets predictable data with fewer null/shape edge cases.
+- API response changes are isolated in one mapping file.
+
+### Risks if not done
+
+- UI regressions from undefined/null/wrong-type fields.
+- Repeated ad-hoc checks scattered across components, increasing complexity.
+- Inconsistent behavior between pages (one component handles missing fields, another crashes).
+- Harder migrations when API changes shape.

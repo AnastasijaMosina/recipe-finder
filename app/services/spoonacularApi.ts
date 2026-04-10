@@ -1,4 +1,5 @@
 const API_BASE_URL = '/api/recipes';
+import { normalizeRecipe, normalizeRecipes } from './recipeMappers';
 
 export interface Recipe {
   id: number;
@@ -29,12 +30,12 @@ export interface RandomRecipeResponse {
 }
 
 interface RandomRecipeApiResponse {
-  recipe?: Recipe;
+  recipe?: unknown;
   error?: string;
 }
 
 interface SearchRecipeApiResponse {
-  results?: Recipe[];
+  results?: unknown;
   error?: string;
 }
 
@@ -61,7 +62,7 @@ export const spoonacularApi = {
       throw new Error('No recipe returned.');
     }
 
-    return data.recipe;
+    return normalizeRecipe(data.recipe);
   },
 
   async searchRecipes(params: {
@@ -100,6 +101,6 @@ export const spoonacularApi = {
     }
 
     const data: SearchRecipeApiResponse = await response.json();
-    return data.results || [];
+    return normalizeRecipes(data.results);
   },
 };
