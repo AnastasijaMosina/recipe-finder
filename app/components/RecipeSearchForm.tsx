@@ -25,7 +25,11 @@ interface RecipeSearchFormProps {
 }
 
 export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearchFormProps) {
-  const { register, handleSubmit } = useForm<RecipeSearchFormValues>({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<RecipeSearchFormValues>({
     defaultValues: {
       cuisineType: '',
       includeIngredients: '',
@@ -53,9 +57,14 @@ export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearch
         {/* Cuisine Type */}
         <div className="form-field">
           <label htmlFor="cuisineType" className="form-label">
-            Cuisine Type
+            Cuisine Type *
           </label>
-          <select id="cuisineType" {...register('cuisineType')} className="form-select">
+          <select
+            id="cuisineType"
+            {...register('cuisineType', { required: 'Cuisine type is required.' })}
+            className="form-select"
+            aria-invalid={Boolean(errors.cuisineType)}
+          >
             <option value="">Select cuisine type...</option>
             {CUISINES.map((cuisine) => (
               <option key={cuisine} value={cuisine.toLowerCase()}>
@@ -63,6 +72,7 @@ export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearch
               </option>
             ))}
           </select>
+          {errors.cuisineType && <p className="form-error-message">{errors.cuisineType.message}</p>}
         </div>
 
         {/* Include Ingredients */}
@@ -98,9 +108,14 @@ export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearch
         {/* Meal Type */}
         <div className="form-field">
           <label htmlFor="mealType" className="form-label">
-            Meal Type
+            Meal Type *
           </label>
-          <select id="mealType" {...register('mealType')} className="form-select">
+          <select
+            id="mealType"
+            {...register('mealType', { required: 'Meal type is required.' })}
+            className="form-select"
+            aria-invalid={Boolean(errors.mealType)}
+          >
             <option value="">Select meal type...</option>
             {MEAL_TYPES.map((type) => (
               <option key={type} value={type.toLowerCase()}>
@@ -108,6 +123,7 @@ export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearch
               </option>
             ))}
           </select>
+          {errors.mealType && <p className="form-error-message">{errors.mealType.message}</p>}
         </div>
 
         {/* Max Ready Time */}

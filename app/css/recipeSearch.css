@@ -201,6 +201,13 @@
   color: #6b7280;
 }
 
+.form-error-message {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #dc2626;
+  font-weight: 500;
+}
+
 /* Search Button */
 .search-btn-container {
   padding-top: 1rem;
