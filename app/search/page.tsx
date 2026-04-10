@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import '../css/recipeSearch.css';
 import RecipeSearchForm from '../components/RecipeSearchForm';
@@ -18,11 +17,20 @@ interface SearchFilters {
 }
 
 const SearchPage = () => {
-  const [submittedFilters, setSubmittedFilters] = useState<SearchFilters | null>(null);
-
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const searchKey = submittedFilters ? (['recipe-search', submittedFilters] as const) : null;
+  // URL is the single source of truth for active filters
+  const filtersFromUrl: SearchFilters = {
+    cuisine: searchParams.get('cuisine') ?? undefined,
+    includeIngredients: searchParams.get('includeIngredients') ?? undefined,
+    excludeIngredients: searchParams.get('excludeIngredients') ?? undefined,
+    type: searchParams.get('type') ?? undefined,
+    maxReadyTime: searchParams.get('maxReadyTime') ?? undefined,
+  };
+
+  const hasFilters = Object.values(filtersFromUrl).some(Boolean);
+  const searchKey = hasFilters ? (['recipe-search', filtersFromUrl] as const) : null;
 
   const {
     data: searchResults = [],
@@ -37,7 +45,13 @@ const SearchPage = () => {
   const isSearching = isLoading || isValidating;
 
   const handleSearch = (filters: SearchFilters) => {
-    setSubmittedFilters(filters);
+    const params = new URLSearchParams();
+    if (filters.cuisine) params.set('cuisine', filters.cuisine);
+    if (filters.includeIngredients) params.set('includeIngredients', filters.includeIngredients);
+    if (filters.excludeIngredients) params.set('excludeIngredients', filters.excludeIngredients);
+    if (filters.type) params.set('type', filters.type);
+    if (filters.maxReadyTime) params.set('maxReadyTime', filters.maxReadyTime);
+    router.push(`/search?${params.toString()}`);
   };
 
   return (
@@ -46,7 +60,17 @@ const SearchPage = () => {
         <button onClick={() => router.push('/')} className="btn btn-primary btn-small">
           ← Back to Home
         </button>
-        <RecipeSearchForm onSubmit={handleSearch} isSearching={isSearching} />
+        <RecipeSearchForm
+          onSubmit={handleSearch}
+          isSearching={isSearching}
+          defaultValues={{
+            cuisineType: filtersFromUrl.cuisine ?? '',
+            includeIngredients: filtersFromUrl.includeIngredients ?? '',
+            excludeIngredients: filtersFromUrl.excludeIngredients ?? '',
+            mealType: filtersFromUrl.type ?? '',
+            maxReadyTime: filtersFromUrl.maxReadyTime ?? '',
+          }}
+        />
 
         {searchError && (
           <ErrorMessage

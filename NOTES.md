@@ -284,3 +284,32 @@ Add a shared Zod schema for both form validation and API query-param parsing.
 
 - Validation drift between UI and backend.
 - Invalid params can leak into external API requests.
+
+---
+
+## 11. URL-Synced Search Filters
+
+Search filters are now written to and read from the URL query string instead of local React state.
+
+### What it means
+
+Submitting the search form calls `router.push('/search?cuisine=italian&type=soup')` instead of `setState`. On load, `useSearchParams()` reads those params back — pre-filling the form and triggering the SWR fetch automatically.
+
+### Why it's done
+
+- **Shareability** — the URL fully describes the search, so it can be copied and shared.
+- **Bookmarkable** — users can save specific searches.
+- **Back/forward navigation** — browser history reflects each search, so the back button returns to the previous one.
+- **Refreshable** — results survive a page reload.
+- **Single source of truth** — URL drives both the form defaults and the SWR cache key, eliminating state duplication.
+
+### Tradeoffs
+
+- Slightly more code to sync URL, form defaults, and SWR key together.
+- Form defaults only apply on initial mount; subsequent URL-driven navigations rely on the component remounting (back/forward) rather than dynamic re-initialization.
+
+### Risk if skipped
+
+- Any refresh or accidental tab close loses the search entirely.
+- Back button skips out of the search page instead of returning to the previous search.
+- Searches cannot be shared or linked.

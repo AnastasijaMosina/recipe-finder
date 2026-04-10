@@ -28,7 +28,7 @@ A practical roadmap to improve this project using stronger frontend architecture
 
 9. Refactor search form with React Hook Form. ✅
 10. Add Zod schema validation for all filters and input parsing. ✅
-11. Sync search filters to URL query params (shareable/bookmarkable searches).
+11. Sync search filters to URL query params (shareable/bookmarkable searches). ✅
 12. Persist last search criteria for better UX.
 
 **You learn:** type-safe forms, validation patterns, URL-driven state.
@@ -89,3 +89,11 @@ A practical roadmap to improve this project using stronger frontend architecture
 6. Phase 7 (Docs/DX)
 
 If you complete phases 1–3 + 5, your project quality will already feel close to production-level for a portfolio app.
+
+## Extra — Copilot Reusable Starter Script
+
+Based on the patterns established in this project, create a reusable GitHub Copilot instructions file for bootstrapping future Next.js applications with:
+
+- Consistent folder structure (`app/`, `services/`, `schemas/`, `utils/`, `components/`, `hooks/`, `context/`)
+- Framework conventions (Next.js App Router, React Hook Form, SWR, Zod)
+- Architectural best practices (BFF pattern, server-only secrets, centralized error handling, response mapping, schema validation)

@@ -19,9 +19,14 @@ interface SearchFilters {
 interface RecipeSearchFormProps {
   onSubmit: (filters: SearchFilters) => void;
   isSearching: boolean;
+  defaultValues?: Partial<RecipeSearchFormValues>;
 }
 
-export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearchFormProps) {
+export default function RecipeSearchForm({
+  onSubmit,
+  isSearching,
+  defaultValues,
+}: RecipeSearchFormProps) {
   const {
     register,
     handleSubmit,
@@ -34,6 +39,7 @@ export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearch
       excludeIngredients: '',
       mealType: '',
       maxReadyTime: '',
+      ...defaultValues,
     },
   });
 
