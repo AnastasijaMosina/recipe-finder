@@ -6,18 +6,11 @@ import { CUISINES, MEAL_TYPES } from '../constants/cuisines';
 import {
   recipeSearchFormSchema,
   type RecipeSearchFormValues,
+  type RecipeSearchFilters,
 } from '../schemas/searchFiltersSchema';
 
-interface SearchFilters {
-  cuisine?: string;
-  includeIngredients?: string;
-  excludeIngredients?: string;
-  type?: string;
-  maxReadyTime?: string;
-}
-
 interface RecipeSearchFormProps {
-  onSubmit: (filters: SearchFilters) => void;
+  onSubmit: (filters: RecipeSearchFilters) => void;
   isSearching: boolean;
   defaultValues?: Partial<RecipeSearchFormValues>;
 }

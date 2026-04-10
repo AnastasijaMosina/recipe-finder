@@ -7,21 +7,14 @@ import RecipeSearchForm from '../components/RecipeSearchForm';
 import SearchResults from '../components/SearchResults';
 import ErrorMessage from '../components/ErrorMessage';
 import { spoonacularApi } from '../services/spoonacularApi';
-
-interface SearchFilters {
-  cuisine?: string;
-  includeIngredients?: string;
-  excludeIngredients?: string;
-  type?: string;
-  maxReadyTime?: string;
-}
+import type { RecipeSearchFilters } from '../schemas/searchFiltersSchema';
 
 const SearchPage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   // URL is the single source of truth for active filters
-  const filtersFromUrl: SearchFilters = {
+  const filtersFromUrl: RecipeSearchFilters = {
     cuisine: searchParams.get('cuisine') ?? undefined,
     includeIngredients: searchParams.get('includeIngredients') ?? undefined,
     excludeIngredients: searchParams.get('excludeIngredients') ?? undefined,
@@ -44,7 +37,7 @@ const SearchPage = () => {
 
   const isSearching = isLoading || isValidating;
 
-  const handleSearch = (filters: SearchFilters) => {
+  const handleSearch = (filters: RecipeSearchFilters) => {
     const params = new URLSearchParams();
     if (filters.cuisine) params.set('cuisine', filters.cuisine);
     if (filters.includeIngredients) params.set('includeIngredients', filters.includeIngredients);

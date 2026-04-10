@@ -28,3 +28,4 @@ export const searchQueryParamsSchema = z.object({
 });
 
 export type SearchQueryParams = z.infer<typeof searchQueryParamsSchema>;
+export type RecipeSearchFilters = SearchQueryParams;
