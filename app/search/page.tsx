@@ -8,6 +8,7 @@ import SearchResults from '../components/SearchResults';
 import ErrorMessage from '../components/ErrorMessage';
 import { spoonacularApi } from '../services/spoonacularApi';
 import type { RecipeSearchFilters } from '../schemas/searchFiltersSchema';
+import { applyRecipeSearchFilters } from '../utils/recipeSearchFilters';
 
 const SearchPage = () => {
   const router = useRouter();
@@ -39,11 +40,7 @@ const SearchPage = () => {
 
   const handleSearch = (filters: RecipeSearchFilters) => {
     const params = new URLSearchParams();
-    if (filters.cuisine) params.set('cuisine', filters.cuisine);
-    if (filters.includeIngredients) params.set('includeIngredients', filters.includeIngredients);
-    if (filters.excludeIngredients) params.set('excludeIngredients', filters.excludeIngredients);
-    if (filters.type) params.set('type', filters.type);
-    if (filters.maxReadyTime) params.set('maxReadyTime', filters.maxReadyTime);
+    applyRecipeSearchFilters(params, filters);
     router.push(`/search?${params.toString()}`);
   };
 

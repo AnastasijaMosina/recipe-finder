@@ -3,6 +3,7 @@ import { Recipe } from '../../../services/spoonacularApi';
 import { mapSpoonacularError, errorResponse, ApiError } from '../../../utils/apiErrorHandler';
 import { fetchWithRetry } from '../../../utils/fetchUtils';
 import { searchQueryParamsSchema } from '../../../schemas/searchFiltersSchema';
+import { applyRecipeSearchFilters } from '../../../utils/recipeSearchFilters';
 
 const API_BASE_URL = 'https://api.spoonacular.com';
 const API_KEY = process.env.SPOONACULAR_API_KEY || '';
@@ -36,14 +37,7 @@ export async function GET(request: NextRequest) {
     const queryParams = new URLSearchParams();
 
     queryParams.set('apiKey', API_KEY);
-
-    const { cuisine, includeIngredients, excludeIngredients, type, maxReadyTime } = parsed.data;
-
-    if (cuisine) queryParams.set('cuisine', cuisine);
-    if (includeIngredients) queryParams.set('includeIngredients', includeIngredients);
-    if (excludeIngredients) queryParams.set('excludeIngredients', excludeIngredients);
-    if (type) queryParams.set('type', type);
-    if (maxReadyTime) queryParams.set('maxReadyTime', maxReadyTime);
+    applyRecipeSearchFilters(queryParams, parsed.data);
 
     queryParams.set('number', '10');
     queryParams.set('addRecipeInformation', 'true');
