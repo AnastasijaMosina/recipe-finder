@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Recipe } from '../../../services/spoonacularApi';
 import { mapSpoonacularError, errorResponse, ApiError } from '../../../utils/apiErrorHandler';
 import { fetchWithRetry } from '../../../utils/fetchUtils';
+import { searchQueryParamsSchema } from '../../../schemas/searchFiltersSchema';
 
 const API_BASE_URL = 'https://api.spoonacular.com';
 const API_KEY = process.env.SPOONACULAR_API_KEY || '';
@@ -18,24 +19,31 @@ export async function GET(request: NextRequest) {
 
   try {
     const incoming = request.nextUrl.searchParams;
+    const parsed = searchQueryParamsSchema.safeParse({
+      cuisine: incoming.get('cuisine') ?? undefined,
+      includeIngredients: incoming.get('includeIngredients') ?? undefined,
+      excludeIngredients: incoming.get('excludeIngredients') ?? undefined,
+      type: incoming.get('type') ?? undefined,
+      maxReadyTime: incoming.get('maxReadyTime') ?? undefined,
+    });
+
+    if (!parsed.success) {
+      return errorResponse(
+        new ApiError(400, 'Invalid search parameters. Please check your input.')
+      );
+    }
+
     const queryParams = new URLSearchParams();
 
     queryParams.set('apiKey', API_KEY);
 
-    const allowedParams = [
-      'cuisine',
-      'includeIngredients',
-      'excludeIngredients',
-      'type',
-      'maxReadyTime',
-    ];
+    const { cuisine, includeIngredients, excludeIngredients, type, maxReadyTime } = parsed.data;
 
-    for (const key of allowedParams) {
-      const value = incoming.get(key);
-      if (value) {
-        queryParams.set(key, value);
-      }
-    }
+    if (cuisine) queryParams.set('cuisine', cuisine);
+    if (includeIngredients) queryParams.set('includeIngredients', includeIngredients);
+    if (excludeIngredients) queryParams.set('excludeIngredients', excludeIngredients);
+    if (type) queryParams.set('type', type);
+    if (maxReadyTime) queryParams.set('maxReadyTime', maxReadyTime);
 
     queryParams.set('number', '10');
     queryParams.set('addRecipeInformation', 'true');

@@ -256,3 +256,31 @@ The search form was refactored from manual field state (`useState` per input) to
 - Continued growth of repetitive state and handler code as filters increase.
 - Higher chance of mismatch bugs between local field state and submitted query state.
 - Harder adoption path for typed validation and richer form UX in the next upgrade steps.
+
+---
+
+## 10. Zod Schema Validation for Filters and Input Parsing
+
+Add a shared Zod schema for both form validation and API query-param parsing.
+
+### Why this is useful
+
+- One source of truth for validation rules on client and server.
+- Strong type inference (`z.infer`) keeps types synced with validation logic.
+- Safer API boundary: reject malformed input before calling Spoonacular.
+
+### Suggested implementation
+
+- Create `app/schemas/searchFiltersSchema.ts`.
+- Validate form values with `zodResolver` in React Hook Form.
+- Validate incoming search params in the API route with `safeParse`.
+
+### Tradeoffs
+
+- Adds dependency and slight runtime parsing overhead.
+- Requires team familiarity with Zod schema patterns.
+
+### Risk if skipped
+
+- Validation drift between UI and backend.
+- Invalid params can leak into external API requests.

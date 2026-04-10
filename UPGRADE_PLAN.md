@@ -27,7 +27,7 @@ A practical roadmap to improve this project using stronger frontend architecture
 ## Phase 3 — Forms, Validation & URL State
 
 9. Refactor search form with React Hook Form. ✅
-10. Add Zod schema validation for all filters and input parsing.
+10. Add Zod schema validation for all filters and input parsing. ✅
 11. Sync search filters to URL query params (shareable/bookmarkable searches).
 12. Persist last search criteria for better UX.
 

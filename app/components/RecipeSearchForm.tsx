@@ -1,15 +1,12 @@
 'use client';
 
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { CUISINES, MEAL_TYPES } from '../constants/cuisines';
-
-interface RecipeSearchFormValues {
-  cuisineType: string;
-  includeIngredients: string;
-  excludeIngredients: string;
-  mealType: string;
-  maxReadyTime: string;
-}
+import {
+  recipeSearchFormSchema,
+  type RecipeSearchFormValues,
+} from '../schemas/searchFiltersSchema';
 
 interface SearchFilters {
   cuisine?: string;
@@ -30,6 +27,7 @@ export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearch
     handleSubmit,
     formState: { errors },
   } = useForm<RecipeSearchFormValues>({
+    resolver: zodResolver(recipeSearchFormSchema),
     defaultValues: {
       cuisineType: '',
       includeIngredients: '',
@@ -61,7 +59,7 @@ export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearch
           </label>
           <select
             id="cuisineType"
-            {...register('cuisineType', { required: 'Cuisine type is required.' })}
+            {...register('cuisineType')}
             className="form-select"
             aria-invalid={Boolean(errors.cuisineType)}
           >
@@ -112,7 +110,7 @@ export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearch
           </label>
           <select
             id="mealType"
-            {...register('mealType', { required: 'Meal type is required.' })}
+            {...register('mealType')}
             className="form-select"
             aria-invalid={Boolean(errors.mealType)}
           >
@@ -138,8 +136,13 @@ export default function RecipeSearchForm({ onSubmit, isSearching }: RecipeSearch
             placeholder="e.g., 30"
             min="1"
             className="form-input"
+            aria-invalid={Boolean(errors.maxReadyTime)}
           />
-          <p className="form-helper-text">Maximum time in minutes to prepare the recipe</p>
+          {errors.maxReadyTime ? (
+            <p className="form-error-message">{errors.maxReadyTime.message}</p>
+          ) : (
+            <p className="form-helper-text">Maximum time in minutes to prepare the recipe</p>
+          )}
         </div>
 
         {/* Search Button */}
