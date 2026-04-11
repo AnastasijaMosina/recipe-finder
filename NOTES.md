@@ -415,3 +415,52 @@ We clarified architecture boundaries so each folder has one responsibility.
 - If file answers “what is the business rule/state?” → put it in `domain`.
 - If file answers “how to render?” → put it in `ui/components`.
 - If file answers “how to call/transform external systems?” → put it in `services`.
+
+---
+
+## 17. Unit & Component Testing with Vitest
+
+We added a fast test setup with Vitest and covered core logic + key UI behavior.
+
+### Why this was done
+
+- Catch regressions early while refactoring architecture.
+- Validate business logic (mappers/storage) separately from UI.
+- Add confidence for future features and cleanup work.
+
+### What changed
+
+- Test tooling/config:
+  - `vitest.config.ts`
+  - `vitest.setup.ts`
+  - `package.json` scripts: `test`, `test:watch`, `test:ui`
+- Added unit tests:
+  - `app/services/recipeMappers.test.ts`
+  - `app/services/searchMappers.test.ts`
+  - `app/utils/searchStorage.test.ts`
+- Added component tests:
+  - `app/components/FavoriteButton.test.tsx`
+  - `app/components/RecipeSearchForm.test.tsx`
+
+### Current coverage focus
+
+- Data normalization safety and edge cases.
+- Search filter mapping + storage persistence rules.
+- Form submit behavior and “Load last search” UX path.
+- Favorite button state/interaction behavior.
+
+### Benefits
+
+- Faster debugging and safer refactors.
+- Better reliability of critical user flows.
+- Clear executable examples of expected behavior.
+
+### Tradeoffs
+
+- More files to maintain as UI evolves.
+- Tests can become brittle if tied too closely to markup.
+
+### Practical guideline
+
+- Keep most tests on pure logic (`services`, `utils`) for stability.
+- Add component tests only for user-critical behaviors (submit, toggle, restore).
