@@ -1,77 +1,98 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Recipe } from '../services/spoonacularApi';
 
 const FAVORITES_KEY = 'recipe-favorites';
 
 export function useFavorites() {
-  const [favorites, setFavorites] = useState<Recipe[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [favorites, setFavorites] = useState<Recipe[]>(() => {
+    if (typeof window === 'undefined') {
+      return [];
+    }
 
-  // Load favorites from localStorage on mount (client-side only)
+    const stored = window.localStorage.getItem(FAVORITES_KEY);
+
+    if (!stored) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(stored);
+    } catch (error) {
+      console.error('Failed to parse favorites:', error);
+      window.localStorage.removeItem(FAVORITES_KEY);
+      return [];
+    }
+  });
+  const [isLoaded] = useState(true);
+
+  const favoriteIds = useMemo(() => new Set(favorites.map((favorite) => favorite.id)), [favorites]);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(FAVORITES_KEY);
-      if (stored) {
-        try {
-          setFavorites(JSON.parse(stored));
-        } catch (error) {
-          console.error('Failed to parse favorites:', error);
-          localStorage.removeItem(FAVORITES_KEY);
-        }
-      }
-      setIsLoaded(true);
+      window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     }
-  }, []);
+  }, [favorites]);
 
-  // Save favorites to localStorage whenever they change
-  useEffect(() => {
-    if (isLoaded && typeof window !== 'undefined') {
-      localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
-    }
-  }, [favorites, isLoaded]);
-
-  const addFavorite = (recipe: Recipe) => {
+  const addFavorite = useCallback((recipe: Recipe) => {
     setFavorites((prev) => {
-      // Prevent duplicates
       if (prev.some((fav) => fav.id === recipe.id)) {
         return prev;
       }
       return [...prev, recipe];
     });
-  };
+  }, []);
 
-  const removeFavorite = (recipeId: number) => {
+  const removeFavorite = useCallback((recipeId: number) => {
     setFavorites((prev) => prev.filter((fav) => fav.id !== recipeId));
-  };
+  }, []);
 
-  const toggleFavorite = (recipe: Recipe) => {
-    if (isFavorite(recipe.id)) {
-      removeFavorite(recipe.id);
-    } else {
-      addFavorite(recipe);
-    }
-  };
+  const toggleFavorite = useCallback((recipe: Recipe) => {
+    setFavorites((prev) => {
+      if (prev.some((favorite) => favorite.id === recipe.id)) {
+        return prev.filter((favorite) => favorite.id !== recipe.id);
+      }
 
-  const isFavorite = (recipeId: number): boolean => {
-    return favorites.some((fav) => fav.id === recipeId);
-  };
+      return [...prev, recipe];
+    });
+  }, []);
 
-  const clearFavorites = () => {
+  const isFavorite = useCallback(
+    (recipeId: number): boolean => {
+      return favoriteIds.has(recipeId);
+    },
+    [favoriteIds]
+  );
+
+  const clearFavorites = useCallback(() => {
     setFavorites([]);
     if (typeof window !== 'undefined') {
-      localStorage.removeItem(FAVORITES_KEY);
+      window.localStorage.removeItem(FAVORITES_KEY);
     }
-  };
+  }, []);
 
-  return {
-    favorites,
-    addFavorite,
-    removeFavorite,
-    toggleFavorite,
-    isFavorite,
-    clearFavorites,
-    isLoaded,
-  };
+  return useMemo(
+    () => ({
+      favorites,
+      addFavorite,
+      removeFavorite,
+      toggleFavorite,
+      isFavorite,
+      clearFavorites,
+      isLoaded,
+      favoriteIds,
+      favoritesCount: favorites.length,
+    }),
+    [
+      favorites,
+      addFavorite,
+      removeFavorite,
+      toggleFavorite,
+      isFavorite,
+      clearFavorites,
+      isLoaded,
+      favoriteIds,
+    ]
+  );
 }

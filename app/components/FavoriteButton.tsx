@@ -1,6 +1,6 @@
 'use client';
 
-import { useFavorites } from '../context/FavoritesContext';
+import { useFavoriteActions, useIsFavorite } from '../context/FavoritesContext';
 import { Recipe } from '../services/spoonacularApi';
 
 interface FavoriteButtonProps {
@@ -9,8 +9,8 @@ interface FavoriteButtonProps {
 }
 
 export default function FavoriteButton({ recipe, className = '' }: FavoriteButtonProps) {
-  const { toggleFavorite, isFavorite } = useFavorites();
-  const favorited = isFavorite(recipe.id);
+  const { toggleFavorite } = useFavoriteActions();
+  const favorited = useIsFavorite(recipe.id);
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault(); // ="Don't do the default thing this event normally does"

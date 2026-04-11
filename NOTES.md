@@ -336,3 +336,40 @@ The app stores the last submitted search filters in `localStorage` and allows re
 - Introduces client-side persistence concerns (stale/invalid stored data).
 - Requires validation/normalization before use.
 - Must keep storage logic separate from form/UI logic to avoid coupling.
+
+### Risks if not implemented
+
+- Users must re-enter filters after leaving or reloading the app.
+- Higher drop-off for iterative search behavior.
+- More repetitive input leads to weaker perceived UX quality.
+
+---
+
+## 15. Focused Context Selectors & Stable Callbacks (Favorites)
+
+The favorites context was refactored to expose narrower hooks and use memoized internals.
+
+### What changed
+
+- All action functions (`addFavorite`, `toggleFavorite`, etc.) wrapped in `useCallback` — stable references across renders.
+- `favoriteIds` derived as a `Set<number>` from the array — `isFavorite` lookup is now O(1) instead of O(n) array scan.
+- Context split into two: `FavoritesStateContext` (data) and `FavoritesActionsContext` (methods) — actions don't retrigger state consumers.
+- Added focused selector hooks: `useFavoritesCount`, `useFavoritesList`, `useFavoritesLoaded`, `useFavoriteActions`, `useIsFavorite`.
+- Consumers subscribe narrowly: `Header` reads count only, `FavoriteButton` reads one id + toggle, favorites page reads list.
+
+### Why it's done
+
+- Components subscribe only to what they actually use, so unrelated context updates don't cause them to rerender.
+- Stable callbacks prevent unnecessary child rerenders caused by new function references.
+
+### Honest assessment for this app
+
+- Gain is marginal here — the list is short and React is fast. O(1) `Set` lookup and stable callbacks are the most concrete improvements.
+- Added API surface (`useFavoritesCount` vs `favorites.length`) increases learning overhead without a measurable UX difference at this scale.
+
+### When this pattern is worth it
+
+- Apps with **many components** all subscribed to a shared context simultaneously.
+- Contexts with **frequently-changing values** (live counters, real-time feeds, chat).
+- **Large teams** where making dependencies explicit per-component improves code review and maintainability.
+- Always **measure first** — use React DevTools Profiler to confirm context rerenders are a real bottleneck before refactoring.

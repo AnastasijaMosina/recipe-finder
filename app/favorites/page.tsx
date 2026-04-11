@@ -1,13 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useFavorites } from '../context/FavoritesContext';
+import { useFavoritesList, useFavoritesLoaded } from '../context/FavoritesContext';
 import RecipeCard from '../components/RecipeCard';
 import '../css/recipeSearch.css';
 
 export default function FavoritesPage() {
   const router = useRouter();
-  const { favorites, isLoaded } = useFavorites();
+  const favorites = useFavoritesList();
+  const isLoaded = useFavoritesLoaded();
 
   if (!isLoaded) {
     return (

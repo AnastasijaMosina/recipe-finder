@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useFavorites } from '../context/FavoritesContext';
+import { useFavoritesCount } from '../context/FavoritesContext';
 
 const Header = () => {
   const pathname = usePathname();
-  const { favorites } = useFavorites();
+  const favoritesCount = useFavoritesCount();
 
   return (
     <header className="recipe-header">
@@ -23,7 +23,7 @@ const Header = () => {
             href="/favorites"
             className={`nav-link ${pathname === '/favorites' ? 'active' : ''}`}
           >
-            ⭐ Favorites {favorites.length > 0 && `(${favorites.length})`}
+            ⭐ Favorites {favoritesCount > 0 && `(${favoritesCount})`}
           </Link>
         </nav>
       </div>
