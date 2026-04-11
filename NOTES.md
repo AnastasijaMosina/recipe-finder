@@ -313,3 +313,26 @@ Submitting the search form calls `router.push('/search?cuisine=italian&type=soup
 - Any refresh or accidental tab close loses the search entirely.
 - Back button skips out of the search page instead of returning to the previous search.
 - Searches cannot be shared or linked.
+
+---
+
+## 12. Persist Last Search Criteria (localStorage)
+
+The app stores the last submitted search filters in `localStorage` and allows restoring them via a `Load last search` button.
+
+### Why this was done
+
+- Improves return-user UX: users can quickly continue from their previous search without retyping filters.
+- Complements URL state: URL remains source of current search, while storage keeps a convenience fallback.
+
+### Pros
+
+- Faster repeated searching and less friction.
+- Works across refreshes and browser restarts.
+- Simple implementation with small code footprint.
+
+### Cons / Tradeoffs
+
+- Introduces client-side persistence concerns (stale/invalid stored data).
+- Requires validation/normalization before use.
+- Must keep storage logic separate from form/UI logic to avoid coupling.
