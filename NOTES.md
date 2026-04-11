@@ -418,7 +418,7 @@ We clarified architecture boundaries so each folder has one responsibility.
 
 ---
 
-## 17. Unit & Component Testing with Vitest
+## 17-18. Unit & Component Testing with Vitest
 
 We added a fast test setup with Vitest and covered core logic + key UI behavior.
 
@@ -464,3 +464,41 @@ We added a fast test setup with Vitest and covered core logic + key UI behavior.
 
 - Keep most tests on pure logic (`services`, `utils`) for stability.
 - Add component tests only for user-critical behaviors (submit, toggle, restore).
+
+---
+
+## 20. CI Quality Checks (lint, typecheck, tests)
+
+We added automated CI checks so every push/PR is validated the same way.
+
+### Why this was done
+
+- Prevent broken code from being merged.
+- Make quality checks consistent across machines and developers.
+- Catch regressions early without relying on manual testing.
+
+### What changed
+
+- Added `.github/workflows/ci.yml`
+- Added explicit `typecheck` script in `package.json`
+- CI now runs:
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm test`
+  - `pnpm e2e`
+
+### Benefits
+
+- Safer merges and more confidence in refactors.
+- Faster code reviews because core checks are automated.
+- Same validation rules in local dev and GitHub.
+
+### Tradeoffs
+
+- CI adds runtime cost to every PR.
+- E2E checks increase confidence but are slower than unit tests.
+
+### Practical guideline
+
+- Keep CI focused on high-value gates: lint, types, tests.
+- Use unit/component tests as the fast base and only a small number of stable E2E flows.

@@ -50,8 +50,8 @@ A practical roadmap to improve this project using stronger frontend architecture
 
 17. Add unit tests for favorites logic and utility functions. ✅
 18. Add component tests for search form and favorite button behavior. ✅
-19. Add one end-to-end flow (search -> favorite -> verify favorites page).
-20. Add CI checks for lint, typecheck, and tests.
+19. Add one end-to-end flow (search -> favorite -> verify favorites page). ✅
+20. Add CI checks for lint, typecheck, and tests. ✅
 
 **You learn:** confidence-driven development and regression prevention.
 
