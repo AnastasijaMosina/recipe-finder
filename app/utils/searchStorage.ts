@@ -1,4 +1,7 @@
-import { searchQueryParamsSchema, type RecipeSearchFilters } from '../schemas/searchFiltersSchema';
+import {
+  searchQueryParamsSchema,
+  type RecipeSearchFilters,
+} from '../domain/search/searchFiltersSchema';
 import { normalizeSearchFilters } from '../services/searchMappers';
 
 const LAST_SEARCH_FILTERS_KEY = 'recipe-finder:last-search-filters';

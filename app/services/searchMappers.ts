@@ -2,7 +2,7 @@ import {
   searchQueryParamsSchema,
   type RecipeSearchFilters,
   type RecipeSearchFormValues,
-} from '../schemas/searchFiltersSchema';
+} from '../domain/search/searchFiltersSchema';
 
 export const normalizeSearchFilters = (filters: RecipeSearchFilters): RecipeSearchFilters => {
   const parsedFilters = searchQueryParamsSchema.safeParse({

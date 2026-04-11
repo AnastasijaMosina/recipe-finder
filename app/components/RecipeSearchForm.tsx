@@ -8,7 +8,7 @@ import {
   recipeSearchFormSchema,
   type RecipeSearchFormValues,
   type RecipeSearchFilters,
-} from '../schemas/searchFiltersSchema';
+} from '../domain/search/searchFiltersSchema';
 import { loadLastSearchFilters, saveLastSearchFilters } from '../utils/searchStorage';
 import { mapFiltersToFormValues, mapFormValuesToFilters } from '../services/searchMappers';
 

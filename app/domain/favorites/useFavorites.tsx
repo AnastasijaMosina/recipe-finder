@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Recipe } from '../services/spoonacularApi';
+import { Recipe } from '../../services/spoonacularApi';
 
 const FAVORITES_KEY = 'recipe-favorites';
 
@@ -9,7 +9,6 @@ export function useFavorites() {
   const [favorites, setFavorites] = useState<Recipe[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load favorites from localStorage on mount (client-side only)
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const stored = localStorage.getItem(FAVORITES_KEY);
@@ -25,7 +24,6 @@ export function useFavorites() {
     }
   }, []);
 
-  // Save favorites to localStorage whenever they change
   useEffect(() => {
     if (isLoaded && typeof window !== 'undefined') {
       localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
@@ -34,7 +32,6 @@ export function useFavorites() {
 
   const addFavorite = (recipe: Recipe) => {
     setFavorites((prev) => {
-      // Prevent duplicates
       if (prev.some((fav) => fav.id === recipe.id)) {
         return prev;
       }

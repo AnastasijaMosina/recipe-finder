@@ -336,3 +336,82 @@ The app stores the last submitted search filters in `localStorage` and allows re
 - Introduces client-side persistence concerns (stale/invalid stored data).
 - Requires validation/normalization before use.
 - Must keep storage logic separate from form/UI logic to avoid coupling.
+
+### Risk if skipped
+
+- Users must re-enter filters after leaving or reloading the app.
+- More repetitive input and weaker return-user experience.
+
+---
+
+## 16. Clear Folder Boundaries (`domain`, `ui`, `services`, `hooks`)
+
+We clarified architecture boundaries so each folder has one responsibility.
+
+### Why this was done
+
+- Make code placement predictable as the project grows.
+- Reduce mixing of business logic, UI rendering, and integration code.
+- Make onboarding and refactors faster.
+
+### What changed (in this project)
+
+- Introduced domain-first folders for core business concepts:
+  - `app/domain/favorites/FavoritesContext.tsx`
+  - `app/domain/favorites/useFavorites.tsx`
+  - `app/domain/search/searchFiltersSchema.ts`
+- Removed old locations:
+  - `app/context/FavoritesContext.tsx`
+  - `app/hooks/useFavorites.tsx`
+  - `app/schemas/searchFiltersSchema.ts`
+- Updated imports in layout, components, search page/form, search storage/mappers, and API route to use new domain paths.
+
+### Benefits
+
+- Better separation of concerns and clearer ownership per file.
+- Faster “where should this code go?” decisions.
+- Lower risk of accidental coupling across features.
+
+### When this practice is most useful
+
+- Medium/large projects with multiple contributors.
+- Projects expected to grow features over time.
+- Codebases where mixed responsibilities already cause confusion.
+
+### Tradeoff
+
+- Short-term churn from moving files and updating imports.
+- For very small apps, strict boundaries can feel heavier than needed.
+
+### Domain layer — what it is
+
+`domain` is the business layer of the app: core concepts, rules, and feature state that should remain valid even if UI framework or API transport changes.
+
+### What goes into `domain`
+
+- Feature models/types and validation schemas (for example search filter schema/types).
+- Feature state and behavior (favorites state, toggle logic, selectors/helpers).
+- Rules that describe **what the app does**, not **how it is displayed**.
+
+### What should NOT go into `domain`
+
+- Pure UI rendering (`components`, CSS, icons, layout details).
+- External transport/integration concerns (HTTP client, retry, fetch wrappers, API mapping adapters).
+- Generic infrastructure helpers not tied to business meaning.
+
+### Practical examples from this repo
+
+- Domain examples:
+  - `app/domain/search/searchFiltersSchema.ts`
+  - `app/domain/favorites/useFavorites.tsx`
+  - `app/domain/favorites/FavoritesContext.tsx`
+- Not domain examples:
+  - `app/components/RecipeCard.tsx` (UI)
+  - `app/services/spoonacularApi.ts` (integration)
+  - `app/utils/fetchUtils.ts` (infrastructure)
+
+### Quick placement rule (for future files)
+
+- If file answers “what is the business rule/state?” → put it in `domain`.
+- If file answers “how to render?” → put it in `ui/components`.
+- If file answers “how to call/transform external systems?” → put it in `services`.

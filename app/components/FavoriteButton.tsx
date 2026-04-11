@@ -1,6 +1,6 @@
 'use client';
 
-import { useFavorites } from '../context/FavoritesContext';
+import { useFavorites } from '../domain/favorites/FavoritesContext';
 import { Recipe } from '../services/spoonacularApi';
 
 interface FavoriteButtonProps {
