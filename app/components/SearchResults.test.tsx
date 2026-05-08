@@ -59,8 +59,6 @@ describe('SearchResults', () => {
     render(<SearchResults results={[recipe]} isLoading={true} />);
 
     expect(screen.queryByText('Search Results')).not.toBeInTheDocument();
-    expect(
-      screen.getByRole('region', { name: 'Loading search results' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Loading search results' })).toBeInTheDocument();
   });
 });
