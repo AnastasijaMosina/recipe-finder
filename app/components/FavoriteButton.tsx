@@ -23,6 +23,7 @@ export default function FavoriteButton({ recipe, className = '' }: FavoriteButto
       onClick={handleClick}
       className={`favorite-btn ${favorited ? 'favorited' : ''} ${className}`}
       aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
+      aria-pressed={favorited}
       title={favorited ? 'Remove from favorites' : 'Add to favorites'}
     >
       {favorited ? '⭐' : '☆'}

@@ -12,6 +12,14 @@ function normalizeNumber(value: unknown, fallback: number = 0): number {
   return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
 }
 
+function normalizeRequiredPositiveNumber(value: unknown, fieldName: string): number {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+
+  throw new Error(`Invalid ${fieldName}.`);
+}
+
 function normalizeStringArray(value: unknown): string[] {
   if (!Array.isArray(value)) {
     return [];
@@ -48,7 +56,7 @@ export function normalizeRecipe(input: unknown): Recipe {
   const ingredientsRaw = Array.isArray(input.extendedIngredients) ? input.extendedIngredients : [];
 
   return {
-    id: normalizeNumber(input.id),
+    id: normalizeRequiredPositiveNumber(input.id, 'recipe id'),
     title: normalizeString(input.title, 'Untitled recipe'),
     image: normalizeString(input.image),
     imageType: normalizeString(input.imageType),
@@ -69,5 +77,11 @@ export function normalizeRecipes(input: unknown): Recipe[] {
     return [];
   }
 
-  return input.map(normalizeRecipe);
+  return input.flatMap((item) => {
+    try {
+      return [normalizeRecipe(item)];
+    } catch {
+      return [];
+    }
+  });
 }
