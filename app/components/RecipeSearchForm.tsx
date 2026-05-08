@@ -178,9 +178,7 @@ export default function RecipeSearchForm({
             min="1"
             className="form-input"
             aria-invalid={Boolean(errors.maxReadyTime)}
-            aria-describedby={
-              errors.maxReadyTime ? 'maxReadyTime-error' : 'maxReadyTime-helper'
-            }
+            aria-describedby={errors.maxReadyTime ? 'maxReadyTime-error' : 'maxReadyTime-helper'}
           />
           {errors.maxReadyTime ? (
             <p className="form-error-message" id="maxReadyTime-error">

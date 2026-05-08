@@ -59,7 +59,7 @@
   outline-offset: 2px;
 }
 
-.nav-link[aria-current="page"] {
+.nav-link[aria-current='page'] {
   background-color: rgba(134, 239, 172, 0.5);
   font-weight: 600;
 }
