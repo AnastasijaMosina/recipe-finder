@@ -1,4 +1,4 @@
-import type { RecipeSearchFilters } from '../schemas/searchFiltersSchema';
+import type { RecipeSearchFilters } from '../domain/search/searchFiltersSchema';
 
 export function applyRecipeSearchFilters(
   params: URLSearchParams,
