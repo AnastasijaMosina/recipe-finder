@@ -51,7 +51,9 @@ describe('RecipeSearchForm', () => {
   it('disables load button when no saved filters exist', () => {
     render(<RecipeSearchForm onSubmit={vi.fn()} isSearching={false} />);
 
-    expect(screen.getByRole('button', { name: 'Load last search' })).toBeDisabled();
+    expect(
+      screen.getByRole('button', { name: 'Restore your previous search criteria' })
+    ).toBeDisabled();
   });
 
   it('loads previous filters into the form when requested', async () => {
@@ -67,7 +69,7 @@ describe('RecipeSearchForm', () => {
 
     render(<RecipeSearchForm onSubmit={vi.fn()} isSearching={false} />);
 
-    await user.click(screen.getByRole('button', { name: 'Load last search' }));
+    await user.click(screen.getByRole('button', { name: 'Restore your previous search criteria' }));
 
     expect(screen.getByLabelText('Cuisine Type *')).toHaveValue('mexican');
     expect(screen.getByLabelText('Ingredients to Include')).toHaveValue('beans');

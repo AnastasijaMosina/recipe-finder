@@ -42,6 +42,7 @@ describe('FavoriteButton', () => {
     const button = screen.getByRole('button', { name: 'Add to favorites' });
     expect(button).toHaveTextContent('☆');
     expect(button).toHaveAttribute('title', 'Add to favorites');
+    expect(button).toHaveAttribute('aria-pressed', 'false');
   });
 
   it('renders as favorited when recipe is in favorites', () => {
@@ -60,6 +61,7 @@ describe('FavoriteButton', () => {
     const button = screen.getByRole('button', { name: 'Remove from favorites' });
     expect(button).toHaveTextContent('⭐');
     expect(button).toHaveAttribute('title', 'Remove from favorites');
+    expect(button).toHaveAttribute('aria-pressed', 'true');
   });
 
   it('calls toggleFavorite with the current recipe on click', () => {
