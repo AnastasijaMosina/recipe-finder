@@ -1,8 +1,8 @@
 'use client';
 
 import { createContext, useContext } from 'react';
-import { useFavorites as useLocalFavorites } from '../hooks/useFavorites';
-import { Recipe } from '../services/spoonacularApi';
+import { useFavorites as useLocalFavorites } from './useFavorites';
+import { Recipe } from '../../services/spoonacularApi';
 
 interface FavoritesContextType {
   favorites: Recipe[];

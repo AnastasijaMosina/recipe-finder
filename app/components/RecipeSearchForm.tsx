@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CUISINES, MEAL_TYPES } from '../constants/cuisines';
@@ -7,7 +8,9 @@ import {
   recipeSearchFormSchema,
   type RecipeSearchFormValues,
   type RecipeSearchFilters,
-} from '../schemas/searchFiltersSchema';
+} from '../domain/search/searchFiltersSchema';
+import { loadLastSearchFilters, saveLastSearchFilters } from '../utils/searchStorage';
+import { mapFiltersToFormValues, mapFormValuesToFilters } from '../services/searchMappers';
 
 interface RecipeSearchFormProps {
   onSubmit: (filters: RecipeSearchFilters) => void;
@@ -20,35 +23,63 @@ export default function RecipeSearchForm({
   isSearching,
   defaultValues,
 }: RecipeSearchFormProps) {
+  const savedFilters = loadLastSearchFilters();
+
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<RecipeSearchFormValues>({
     resolver: zodResolver(recipeSearchFormSchema),
-    defaultValues: {
-      cuisineType: '',
-      includeIngredients: '',
-      excludeIngredients: '',
-      mealType: '',
-      maxReadyTime: '',
-      ...defaultValues,
-    },
+    defaultValues: mapFiltersToFormValues({
+      cuisine: defaultValues?.cuisineType,
+      includeIngredients: defaultValues?.includeIngredients,
+      excludeIngredients: defaultValues?.excludeIngredients,
+      type: defaultValues?.mealType,
+      maxReadyTime: defaultValues?.maxReadyTime,
+    }),
   });
 
-  const onFormSubmit = (values: RecipeSearchFormValues) => {
-    onSubmit({
-      cuisine: values.cuisineType || undefined,
-      includeIngredients: values.includeIngredients || undefined,
-      excludeIngredients: values.excludeIngredients || undefined,
-      type: values.mealType || undefined,
-      maxReadyTime: values.maxReadyTime || undefined,
+  useEffect(() => {
+    reset({
+      cuisineType: defaultValues?.cuisineType ?? '',
+      includeIngredients: defaultValues?.includeIngredients ?? '',
+      excludeIngredients: defaultValues?.excludeIngredients ?? '',
+      mealType: defaultValues?.mealType ?? '',
+      maxReadyTime: defaultValues?.maxReadyTime ?? '',
     });
+  }, [defaultValues, reset]);
+
+  const onFormSubmit = (values: RecipeSearchFormValues) => {
+    const filters = mapFormValuesToFilters(values);
+
+    saveLastSearchFilters(filters);
+    onSubmit(filters);
+  };
+
+  const handleLoadLastSearch = () => {
+    if (!savedFilters) {
+      return;
+    }
+
+    reset(mapFiltersToFormValues(savedFilters));
   };
 
   return (
     <div className="search-container">
       <h2 className="search-title">Search for a Recipe</h2>
+
+      <div className="search-helper-actions">
+        <button
+          type="button"
+          className="btn btn-secondary btn-small"
+          onClick={handleLoadLastSearch}
+          disabled={!savedFilters}
+        >
+          Load last search
+        </button>
+      </div>
 
       <form onSubmit={handleSubmit(onFormSubmit)} className="search-form">
         {/* Cuisine Type */}

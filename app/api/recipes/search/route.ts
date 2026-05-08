@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Recipe } from '../../../services/spoonacularApi';
 import { mapSpoonacularError, errorResponse, ApiError } from '../../../utils/apiErrorHandler';
 import { fetchWithRetry } from '../../../utils/fetchUtils';
-import { searchQueryParamsSchema } from '../../../schemas/searchFiltersSchema';
-import { applyRecipeSearchFilters } from '../../../utils/recipeSearchFilters';
+import { searchQueryParamsSchema } from '../../../domain/search/searchFiltersSchema';
+import { applyRecipeSearchFilters } from '@/app/utils/recipeSearchFilters';
 
 const API_BASE_URL = 'https://api.spoonacular.com';
 const API_KEY = process.env.SPOONACULAR_API_KEY || '';

@@ -29,7 +29,7 @@ A practical roadmap to improve this project using stronger frontend architecture
 9. Refactor search form with React Hook Form. ✅
 10. Add Zod schema validation for all filters and input parsing. ✅
 11. Sync search filters to URL query params (shareable/bookmarkable searches). ✅
-12. Persist last search criteria for better UX.
+12. Persist last search criteria for better UX. ✅
 
 **You learn:** type-safe forms, validation patterns, URL-driven state.
 
@@ -40,7 +40,7 @@ A practical roadmap to improve this project using stronger frontend architecture
 13. Keep small specialized contexts (Favorites, Theme, Auth if added).
 14. Avoid a monolithic AppContext; use focused providers.
 15. Add derived helpers/selectors for context values to reduce unnecessary rerenders.
-16. Define clear folder boundaries: `domain`, `ui`, `services`, `hooks`.
+16. Define clear folder boundaries: `domain`, `ui`, `services`, `hooks`. ✅
 
 **You learn:** maintainable state architecture and separation of concerns.
 
@@ -48,10 +48,10 @@ A practical roadmap to improve this project using stronger frontend architecture
 
 ## Phase 5 — Quality & Testing
 
-17. Add unit tests for favorites logic and utility functions.
-18. Add component tests for search form and favorite button behavior.
-19. Add one end-to-end flow (search -> favorite -> verify favorites page).
-20. Add CI checks for lint, typecheck, and tests.
+17. Add unit tests for favorites logic and utility functions. ✅
+18. Add component tests for search form and favorite button behavior. ✅
+19. Add one end-to-end flow (search -> favorite -> verify favorites page). ✅
+20. Add CI checks for lint, typecheck, and tests. ✅
 
 **You learn:** confidence-driven development and regression prevention.
 

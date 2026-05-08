@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useFavorites } from '../context/FavoritesContext';
+import { useFavorites } from '../domain/favorites/FavoritesContext';
 
 const Header = () => {
   const pathname = usePathname();

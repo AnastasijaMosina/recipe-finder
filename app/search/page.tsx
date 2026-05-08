@@ -7,7 +7,7 @@ import RecipeSearchForm from '../components/RecipeSearchForm';
 import SearchResults from '../components/SearchResults';
 import ErrorMessage from '../components/ErrorMessage';
 import { spoonacularApi } from '../services/spoonacularApi';
-import type { RecipeSearchFilters } from '../schemas/searchFiltersSchema';
+import type { RecipeSearchFilters } from '../domain/search/searchFiltersSchema';
 import { applyRecipeSearchFilters } from '../utils/recipeSearchFilters';
 
 const SearchPage = () => {

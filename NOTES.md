@@ -313,3 +313,192 @@ Submitting the search form calls `router.push('/search?cuisine=italian&type=soup
 - Any refresh or accidental tab close loses the search entirely.
 - Back button skips out of the search page instead of returning to the previous search.
 - Searches cannot be shared or linked.
+
+---
+
+## 12. Persist Last Search Criteria (localStorage)
+
+The app stores the last submitted search filters in `localStorage` and allows restoring them via a `Load last search` button.
+
+### Why this was done
+
+- Improves return-user UX: users can quickly continue from their previous search without retyping filters.
+- Complements URL state: URL remains source of current search, while storage keeps a convenience fallback.
+
+### Pros
+
+- Faster repeated searching and less friction.
+- Works across refreshes and browser restarts.
+- Simple implementation with small code footprint.
+
+### Cons / Tradeoffs
+
+- Introduces client-side persistence concerns (stale/invalid stored data).
+- Requires validation/normalization before use.
+- Must keep storage logic separate from form/UI logic to avoid coupling.
+
+### Risk if skipped
+
+- Users must re-enter filters after leaving or reloading the app.
+- More repetitive input and weaker return-user experience.
+
+---
+
+## 16. Clear Folder Boundaries (`domain`, `ui`, `services`, `hooks`)
+
+We clarified architecture boundaries so each folder has one responsibility.
+
+### Why this was done
+
+- Make code placement predictable as the project grows.
+- Reduce mixing of business logic, UI rendering, and integration code.
+- Make onboarding and refactors faster.
+
+### What changed (in this project)
+
+- Introduced domain-first folders for core business concepts:
+  - `app/domain/favorites/FavoritesContext.tsx`
+  - `app/domain/favorites/useFavorites.tsx`
+  - `app/domain/search/searchFiltersSchema.ts`
+- Removed old locations:
+  - `app/context/FavoritesContext.tsx`
+  - `app/hooks/useFavorites.tsx`
+  - `app/schemas/searchFiltersSchema.ts`
+- Updated imports in layout, components, search page/form, search storage/mappers, and API route to use new domain paths.
+
+### Benefits
+
+- Better separation of concerns and clearer ownership per file.
+- Faster “where should this code go?” decisions.
+- Lower risk of accidental coupling across features.
+
+### When this practice is most useful
+
+- Medium/large projects with multiple contributors.
+- Projects expected to grow features over time.
+- Codebases where mixed responsibilities already cause confusion.
+
+### Tradeoff
+
+- Short-term churn from moving files and updating imports.
+- For very small apps, strict boundaries can feel heavier than needed.
+
+### Domain layer — what it is
+
+`domain` is the business layer of the app: core concepts, rules, and feature state that should remain valid even if UI framework or API transport changes.
+
+### What goes into `domain`
+
+- Feature models/types and validation schemas (for example search filter schema/types).
+- Feature state and behavior (favorites state, toggle logic, selectors/helpers).
+- Rules that describe **what the app does**, not **how it is displayed**.
+
+### What should NOT go into `domain`
+
+- Pure UI rendering (`components`, CSS, icons, layout details).
+- External transport/integration concerns (HTTP client, retry, fetch wrappers, API mapping adapters).
+- Generic infrastructure helpers not tied to business meaning.
+
+### Practical examples from this repo
+
+- Domain examples:
+  - `app/domain/search/searchFiltersSchema.ts`
+  - `app/domain/favorites/useFavorites.tsx`
+  - `app/domain/favorites/FavoritesContext.tsx`
+- Not domain examples:
+  - `app/components/RecipeCard.tsx` (UI)
+  - `app/services/spoonacularApi.ts` (integration)
+  - `app/utils/fetchUtils.ts` (infrastructure)
+
+### Quick placement rule (for future files)
+
+- If file answers “what is the business rule/state?” → put it in `domain`.
+- If file answers “how to render?” → put it in `ui/components`.
+- If file answers “how to call/transform external systems?” → put it in `services`.
+
+---
+
+## 17-18. Unit & Component Testing with Vitest
+
+We added a fast test setup with Vitest and covered core logic + key UI behavior.
+
+### Why this was done
+
+- Catch regressions early while refactoring architecture.
+- Validate business logic (mappers/storage) separately from UI.
+- Add confidence for future features and cleanup work.
+
+### What changed
+
+- Test tooling/config:
+  - `vitest.config.ts`
+  - `vitest.setup.ts`
+  - `package.json` scripts: `test`, `test:watch`, `test:ui`
+- Added unit tests:
+  - `app/services/recipeMappers.test.ts`
+  - `app/services/searchMappers.test.ts`
+  - `app/utils/searchStorage.test.ts`
+- Added component tests:
+  - `app/components/FavoriteButton.test.tsx`
+  - `app/components/RecipeSearchForm.test.tsx`
+
+### Current coverage focus
+
+- Data normalization safety and edge cases.
+- Search filter mapping + storage persistence rules.
+- Form submit behavior and “Load last search” UX path.
+- Favorite button state/interaction behavior.
+
+### Benefits
+
+- Faster debugging and safer refactors.
+- Better reliability of critical user flows.
+- Clear executable examples of expected behavior.
+
+### Tradeoffs
+
+- More files to maintain as UI evolves.
+- Tests can become brittle if tied too closely to markup.
+
+### Practical guideline
+
+- Keep most tests on pure logic (`services`, `utils`) for stability.
+- Add component tests only for user-critical behaviors (submit, toggle, restore).
+
+---
+
+## 20. CI Quality Checks (lint, typecheck, tests)
+
+We added automated CI checks so every push/PR is validated the same way.
+
+### Why this was done
+
+- Prevent broken code from being merged.
+- Make quality checks consistent across machines and developers.
+- Catch regressions early without relying on manual testing.
+
+### What changed
+
+- Added `.github/workflows/ci.yml`
+- Added explicit `typecheck` script in `package.json`
+- CI now runs:
+  - `pnpm lint`
+  - `pnpm typecheck`
+  - `pnpm test`
+  - `pnpm e2e`
+
+### Benefits
+
+- Safer merges and more confidence in refactors.
+- Faster code reviews because core checks are automated.
+- Same validation rules in local dev and GitHub.
+
+### Tradeoffs
+
+- CI adds runtime cost to every PR.
+- E2E checks increase confidence but are slower than unit tests.
+
+### Practical guideline
+
+- Keep CI focused on high-value gates: lint, types, tests.
+- Use unit/component tests as the fast base and only a small number of stable E2E flows.
