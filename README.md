@@ -146,6 +146,26 @@ recipe-finder/
 └── tsconfig.json                # TypeScript configuration
 ```
 
+## 🧭 Architecture Notes
+
+### Data Flow
+
+- The home page fetches a random recipe through `spoonacularApi.getRandomRecipe()` and renders a featured recipe card.
+- The search page reads filters from the URL, validates them with Zod, and uses SWR to fetch search results from the internal API route.
+- Favorites are stored in `localStorage` through the favorites domain hook and exposed to the UI through a dedicated context provider.
+
+### Context Boundaries
+
+- `FavoritesContext` owns only favorites state and actions.
+- UI components such as `RecipeCard` and `FavoriteButton` consume favorites state, but they do not own persistence logic.
+- Search form state stays in `RecipeSearchForm`, while the page component owns the submitted URL state.
+
+### API Strategy
+
+- Browser code calls internal route handlers under `app/api/recipes` instead of calling Spoonacular directly.
+- The route handlers keep `SPOONACULAR_API_KEY` server-side and centralize error mapping, retries, and response shaping.
+- The service layer normalizes API responses before the UI sees them, which keeps components focused on rendering rather than data cleanup.
+
 ## 💻 Usage Guide
 
 ### Home Page (`/`)

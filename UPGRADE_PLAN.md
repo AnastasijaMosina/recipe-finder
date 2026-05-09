@@ -71,7 +71,7 @@ A practical roadmap to improve this project using stronger frontend architecture
 ## Phase 7 — Documentation & Developer Experience
 
 25. Update README to match real project architecture and versions. ✅
-26. Add architectural notes: data flow, context boundaries, API strategy.
+26. Add architectural notes: data flow, context boundaries, API strategy. ✅
 27. Add scripts for `typecheck`, `test`, and a pre-commit quality gate.
 28. Keep a changelog section in notes for each pattern you adopt.
 
