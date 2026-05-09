@@ -288,6 +288,10 @@ const {
 | `npm run build` | Build for production                 |
 | `npm start`     | Start production server              |
 | `npm run lint`  | Run ESLint                           |
+| `npm run typecheck` | Check TypeScript types            |
+| `npm run test`      | Run Vitest unit/component tests   |
+| `npm run quality`   | Run lint, typecheck, and tests    |
+| `npm run pre-commit` | Pre-commit quality gate script   |
 
 ## 🔒 Security Notes
 
