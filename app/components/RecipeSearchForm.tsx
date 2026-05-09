@@ -76,12 +76,18 @@ export default function RecipeSearchForm({
           className="btn btn-secondary btn-small"
           onClick={handleLoadLastSearch}
           disabled={!savedFilters}
+          aria-describedby="load-last-search-help"
         >
           Load last search
         </button>
+        <span id="load-last-search-help" className="sr-only">
+          {savedFilters
+            ? 'Restores your previously saved search filters into the form.'
+            : 'No previously saved search filters are available.'}
+        </span>
       </div>
 
-      <form onSubmit={handleSubmit(onFormSubmit)} className="search-form">
+      <form onSubmit={handleSubmit(onFormSubmit)} className="search-form" aria-busy={isSearching}>
         {/* Cuisine Type */}
         <div className="form-field">
           <label htmlFor="cuisineType" className="form-label">
@@ -92,6 +98,8 @@ export default function RecipeSearchForm({
             {...register('cuisineType')}
             className="form-select"
             aria-invalid={Boolean(errors.cuisineType)}
+            aria-describedby={errors.cuisineType ? 'cuisineType-error' : undefined}
+            required
           >
             <option value="">Select cuisine type...</option>
             {CUISINES.map((cuisine) => (
@@ -100,7 +108,11 @@ export default function RecipeSearchForm({
               </option>
             ))}
           </select>
-          {errors.cuisineType && <p className="form-error-message">{errors.cuisineType.message}</p>}
+          {errors.cuisineType && (
+            <p id="cuisineType-error" className="form-error-message" role="alert">
+              {errors.cuisineType.message}
+            </p>
+          )}
         </div>
 
         {/* Include Ingredients */}
@@ -114,8 +126,11 @@ export default function RecipeSearchForm({
             {...register('includeIngredients')}
             placeholder="e.g., chicken, tomatoes, garlic"
             className="form-input"
+            aria-describedby="includeIngredients-help"
           />
-          <p className="form-helper-text">Separate multiple ingredients with commas</p>
+          <p id="includeIngredients-help" className="form-helper-text">
+            Separate multiple ingredients with commas
+          </p>
         </div>
 
         {/* Exclude Ingredients */}
@@ -129,8 +144,11 @@ export default function RecipeSearchForm({
             {...register('excludeIngredients')}
             placeholder="e.g., nuts, dairy, shellfish"
             className="form-input"
+            aria-describedby="excludeIngredients-help"
           />
-          <p className="form-helper-text">Separate multiple ingredients with commas</p>
+          <p id="excludeIngredients-help" className="form-helper-text">
+            Separate multiple ingredients with commas
+          </p>
         </div>
 
         {/* Meal Type */}
@@ -143,6 +161,8 @@ export default function RecipeSearchForm({
             {...register('mealType')}
             className="form-select"
             aria-invalid={Boolean(errors.mealType)}
+            aria-describedby={errors.mealType ? 'mealType-error' : undefined}
+            required
           >
             <option value="">Select meal type...</option>
             {MEAL_TYPES.map((type) => (
@@ -151,7 +171,11 @@ export default function RecipeSearchForm({
               </option>
             ))}
           </select>
-          {errors.mealType && <p className="form-error-message">{errors.mealType.message}</p>}
+          {errors.mealType && (
+            <p id="mealType-error" className="form-error-message" role="alert">
+              {errors.mealType.message}
+            </p>
+          )}
         </div>
 
         {/* Max Ready Time */}
@@ -167,13 +191,23 @@ export default function RecipeSearchForm({
             min="1"
             className="form-input"
             aria-invalid={Boolean(errors.maxReadyTime)}
+            aria-describedby={errors.maxReadyTime ? 'maxReadyTime-error' : 'maxReadyTime-help'}
+            inputMode="numeric"
           />
           {errors.maxReadyTime ? (
-            <p className="form-error-message">{errors.maxReadyTime.message}</p>
+            <p id="maxReadyTime-error" className="form-error-message" role="alert">
+              {errors.maxReadyTime.message}
+            </p>
           ) : (
-            <p className="form-helper-text">Maximum time in minutes to prepare the recipe</p>
+            <p id="maxReadyTime-help" className="form-helper-text">
+              Maximum time in minutes to prepare the recipe
+            </p>
           )}
         </div>
+
+        <p className="sr-only" aria-live="polite">
+          {isSearching ? 'Searching for recipes.' : ''}
+        </p>
 
         {/* Search Button */}
         <div className="search-btn-container">
@@ -181,6 +215,7 @@ export default function RecipeSearchForm({
             type="submit"
             className="btn btn-primary btn-medium btn-full-width"
             disabled={isSearching}
+            aria-label={isSearching ? 'Searching for recipes' : 'Search recipes'}
           >
             {isSearching ? '⏳ Searching...' : '🔍 Search Recipes'}
           </button>

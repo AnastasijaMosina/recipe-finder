@@ -502,3 +502,76 @@ We added automated CI checks so every push/PR is validated the same way.
 
 - Keep CI focused on high-value gates: lint, types, tests.
 - Use unit/component tests as the fast base and only a small number of stable E2E flows.
+
+---
+
+## 21. Accessibility Pass (keyboard flow, ARIA, focus visibility)
+
+We improved accessibility for interactive controls and status messaging.
+
+### Why this was done
+
+- Ensure keyboard-only users can navigate and operate all main actions.
+- Improve screen-reader understanding of control purpose and state.
+- Make focus location clearly visible during tab navigation.
+
+### What changed
+
+- Added stronger semantics and ARIA states to key controls (favorite toggle, nav links, form actions).
+- Added clear focus styles with `:focus-visible` so active element is easy to track.
+- Improved status/error announcements using live regions and alert roles where appropriate.
+- Added screen-reader-only helper text for context on controls like “Load last search”.
+
+### Benefits
+
+- Better usability for keyboard and assistive-tech users.
+- More predictable navigation and state feedback.
+- Reduced ambiguity in buttons/icons that were previously visual-only.
+
+### Tradeoffs
+
+- Slightly more markup and test maintenance (ARIA names affect selectors).
+- Requires discipline to keep ARIA text synced with behavior.
+
+### ARIA quick reference (most useful in this project)
+
+- `aria-label`
+  - Adds an accessible name directly to an element.
+  - Use when there is no visible text label (icon-only buttons).
+  - Example: favorite star button label includes recipe title.
+
+- `aria-labelledby`
+  - Uses text from another element as the accessible name.
+  - Prefer this when a visible heading/label already exists.
+  - Good for sections/regions tied to on-screen titles.
+
+- `aria-describedby`
+  - Adds extra help text/error context (not the main name).
+  - Useful for helper text under inputs or additional button hints.
+
+- `aria-live`
+  - Announces dynamic content changes to screen readers.
+  - `polite`: waits for current speech to finish.
+  - `assertive`: interrupts immediately (use for urgent messages only).
+
+- `aria-pressed`
+  - For toggle buttons to expose on/off state.
+  - Good fit for “favorited vs not favorited”.
+
+- `aria-invalid`
+  - Marks a form field as invalid.
+  - Pair with an error message (`role="alert"` or described-by text).
+
+- `aria-current="page"`
+  - Marks the active navigation link for current page.
+  - Useful in top nav for Home/Search/Favorites.
+
+- `role="alert"`
+  - Announces message immediately as important.
+  - Use for critical error feedback, not routine updates.
+
+### Practical guideline
+
+- Prefer native HTML semantics first (`button`, `label`, `nav`, `required`).
+- Add ARIA only where native semantics are insufficient.
+- Keep labels human and action-oriented (what happens when activated).

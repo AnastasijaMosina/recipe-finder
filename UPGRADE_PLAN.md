@@ -59,7 +59,7 @@ A practical roadmap to improve this project using stronger frontend architecture
 
 ## Phase 6 — Performance & Accessibility
 
-21. Improve accessibility: keyboard flow, aria labels, pressed states, focus visibility.
+21. Improve accessibility: keyboard flow, aria labels, pressed states, focus visibility. ✅
 22. Add skeleton/loading UI patterns for perceived performance.
 23. Audit rerenders and memoize expensive components when needed.
 24. Optimize images and avoid unnecessary client-side work.

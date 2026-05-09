@@ -50,7 +50,12 @@ const SearchPage = () => {
   return (
     <main className="recipe-main">
       <div className="search-container">
-        <button onClick={() => router.push('/')} className="btn btn-primary btn-small">
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          className="btn btn-primary btn-small"
+          aria-label="Go back to the home page"
+        >
           ← Back to Home
         </button>
         <RecipeSearchForm

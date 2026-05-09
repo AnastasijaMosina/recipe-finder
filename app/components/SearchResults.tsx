@@ -9,13 +9,15 @@ export default function SearchResults({ results }: SearchResultsProps) {
   if (results.length === 0) return null;
 
   return (
-    <div className="search-results">
-      <h2 className="search-results-title">Search Results ({results.length} recipes found)</h2>
+    <section className="search-results" aria-labelledby="search-results-title" aria-live="polite">
+      <h2 id="search-results-title" className="search-results-title">
+        Search Results ({results.length} recipes found)
+      </h2>
       <div className="search-results-grid">
         {results.map((recipe) => (
           <RecipeCard key={recipe.id} recipe={recipe} />
         ))}
       </div>
-    </div>
+    </section>
   );
 }

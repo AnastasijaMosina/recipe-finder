@@ -86,6 +86,18 @@
 }
 
 /* Base Button Styles */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .btn {
   border: none;
   cursor: pointer;
@@ -126,6 +138,17 @@
 
 .btn-secondary:disabled:hover {
   background-color: #f3f4f6;
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible,
+.recipe-card-link:focus-visible,
+.recipe-card-featured-link:focus-visible,
+.form-input:focus-visible,
+.form-select:focus-visible,
+.favorite-btn:focus-visible {
+  outline: 3px solid #1f2937;
+  outline-offset: 3px;
 }
 
 .btn-large {
@@ -419,14 +442,20 @@
   line-height: 1;
   position: absolute;
   z-index: 10;
+  border-radius: 9999px;
 }
 
 .favorite-btn:hover {
   transform: scale(1.2);
 }
 
-.favorite-btn:active {
+.favorite-btn:active,
+.favorite-btn[aria-pressed='true'] {
   transform: scale(0.95);
+}
+
+.favorite-btn[aria-pressed='true'] {
+  background-color: rgba(255, 255, 255, 0.85);
 }
 
 .favorite-btn.favorited {
