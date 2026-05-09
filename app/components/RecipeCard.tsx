@@ -22,6 +22,8 @@ function RecipeCard({ recipe, variant = 'default' }: RecipeCardProps) {
                 className="recipe-card-featured-image"
                 width={400}
                 height={300}
+                sizes="(max-width: 768px) 100vw, 400px"
+                priority={variant === 'featured'}
               />
             </div>
           )}
@@ -90,6 +92,7 @@ function RecipeCard({ recipe, variant = 'default' }: RecipeCardProps) {
           className="recipe-card-image"
           width={400}
           height={300}
+          sizes="(max-width: 768px) 100vw, 400px"
         />
       )}
       <div className="recipe-card-content">
