@@ -1,6 +1,6 @@
 # Recipe Finder 🍳
 
-A modern web application built with Next.js that helps you discover and save your favorite recipes using the Spoonacular API. Search by cuisine, meal type, ingredients, and more!
+A Next.js recipe discovery app that helps you find, save, and revisit recipes using the Spoonacular API. The app uses server route handlers as a BFF, SWR for query state, React Hook Form + Zod for search validation, and localStorage for favorites.
 
 ## ✨ Features
 
@@ -39,18 +39,22 @@ A modern web application built with Next.js that helps you discover and save you
 
 ## 🛠️ Technologies
 
-- **Next.js 15** - React framework with App Router
-- **TypeScript** - Type-safe code
-- **React 19** - Latest React features
-- **Spoonacular API** - Recipe data provider
-- **CSS Modules** - Scoped styling
-- **localStorage API** - Client-side data persistence
+- **Next.js 16.1.6** - React framework with App Router
+- **React 19.2.3** - UI library
+- **TypeScript 5** - Type-safe code
+- **SWR 2.4.1** - Query caching and deduplication
+- **React Hook Form 7.72.1** - Search form state and submission
+- **Zod 4.3.6** - Runtime validation for filters and query params
+- **Spoonacular API** - Recipe data provider behind internal route handlers
+- **Vitest 4.1.4** - Unit and component tests
+- **Playwright 1.59.1** - End-to-end tests
+- **localStorage API** - Client-side favorites persistence
 
 ## 📋 Prerequisites
 
 Before running this project, make sure you have:
 
-- **Node.js 18.0 or higher** ([Download](https://nodejs.org/))
+- **Node.js 18.18 or higher** ([Download](https://nodejs.org/))
 - **npm, yarn, pnpm, or bun** (package manager)
 - **Spoonacular API Key** ([Get free key](https://spoonacular.com/food-api))
 
@@ -119,36 +123,27 @@ npm start
 ```
 recipe-finder/
 ├── app/
-│   ├── components/          # Reusable React components
-│   │   ├── Header.tsx           # Navigation header
-│   │   ├── RecipeCard.tsx       # Recipe display card (featured & grid variants)
-│   │   ├── FavoriteButton.tsx   # Star button for favoriting
-│   │   ├── RecipeSearchForm.tsx # Search form with filters
-│   │   ├── SearchResults.tsx    # Search results grid
-│   │   ├── RandomRecipeButton.tsx
-│   │   ├── DetailedSearchButton.tsx
-│   │   └── ErrorMessage.tsx
-│   ├── css/                 # Stylesheets
-│   │   ├── globals.css          # Global styles
-│   │   └── recipeSearch.css     # Component-specific styles
-│   ├── hooks/               # Custom React hooks
-│   │   └── useFavorites.tsx     # Favorites management hook
-│   ├── services/            # API integration
-│   │   └── spoonacularApi.ts    # Spoonacular API client
-│   ├── constants/           # App constants
-│   │   └── cuisines.ts          # Available cuisine types
-│   ├── favorites/           # Favorites page route
-│   │   └── page.tsx
-│   ├── search/              # Search page route
-│   │   ├── page.tsx
-│   │   └── loading.tsx
-│   ├── layout.tsx           # Root layout
-│   └── page.tsx             # Home page
-├── public/                  # Static assets
-├── .env.local               # Environment variables (create this)
-├── next.config.ts           # Next.js configuration
-├── package.json             # Dependencies
-└── tsconfig.json            # TypeScript configuration
+│   ├── api/
+│   │   └── recipes/             # Server route handlers that proxy Spoonacular
+│   ├── components/              # Reusable UI components and skeletons
+│   ├── constants/               # App constants such as cuisine and meal lists
+│   ├── css/                     # Global and feature styles
+│   ├── domain/                  # Feature state and validation
+│   ├── favorites/               # Favorites route
+│   ├── providers/               # Shared client providers
+│   ├── search/                  # Search route and loading UI
+│   ├── services/                # API integration and response mapping
+│   ├── utils/                   # Fetch, error handling, and storage helpers
+│   ├── layout.tsx               # Root layout
+│   └── page.tsx                 # Home page
+├── e2e/                         # Playwright tests
+├── public/                      # Static assets
+├── api-requests.http            # Ready-to-run Spoonacular request samples
+├── package.json                 # Dependencies and scripts
+├── playwright.config.ts         # Playwright config
+├── vitest.config.ts             # Vitest config
+├── vitest.setup.ts              # Vitest setup
+└── tsconfig.json                # TypeScript configuration
 ```
 
 ## 💻 Usage Guide
@@ -203,7 +198,12 @@ recipe-finder/
 
 ## 🌐 API Endpoints Used
 
-This app uses the following Spoonacular API endpoints:
+This app uses internal route handlers that call Spoonacular on the server:
+
+- `GET /api/recipes/random`
+- `GET /api/recipes/search`
+
+Those routes call the following Spoonacular endpoints:
 
 - **Random Recipes:** `GET /recipes/random`
 - **Complex Search:** `GET /recipes/complexSearch`
@@ -272,7 +272,8 @@ const {
 ## 🔒 Security Notes
 
 - ⚠️ Never commit `.env.local` to version control
-- ⚠️ API key is exposed in client-side code (use backend proxy for production)
+- ✅ API key stays server-side in `SPOONACULAR_API_KEY`
+- ✅ Browser code only talks to internal route handlers
 - ✅ `.gitignore` excludes sensitive files
 - ✅ Free API tier has rate limiting built-in
 
