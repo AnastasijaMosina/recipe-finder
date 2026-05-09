@@ -79,7 +79,7 @@ const SearchPage = () => {
           />
         )}
 
-        <SearchResults results={searchResults} />
+        <SearchResults results={searchResults} isLoading={isSearching} />
       </div>
     </main>
   );

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useFavorites } from '../domain/favorites/FavoritesContext';
 import RecipeCard from '../components/RecipeCard';
+import RecipeCardSkeleton from '../components/RecipeCardSkeleton';
 import '../css/recipeSearch.css';
 
 export default function FavoritesPage() {
@@ -13,7 +14,12 @@ export default function FavoritesPage() {
     return (
       <main className="recipe-main">
         <div className="search-container">
-          <p>Loading favorites...</p>
+          <h1 className="search-title search-results-title-skeleton skeleton-block" />
+          <div className="search-results" aria-label="Loading favorites" aria-live="polite">
+            <div className="search-results-grid">
+              <RecipeCardSkeleton count={6} />
+            </div>
+          </div>
         </div>
       </main>
     );

@@ -575,3 +575,12 @@ We improved accessibility for interactive controls and status messaging.
 - Prefer native HTML semantics first (`button`, `label`, `nav`, `required`).
 - Add ARIA only where native semantics are insufficient.
 - Keep labels human and action-oriented (what happens when activated).
+
+22. Add skeleton/loading UI patterns for perceived performance
+
+### Why skeletons are useful
+
+- They show the page layout immediately, so the app feels faster while data loads.
+- They reduce layout shift because the final content appears in a stable structure.
+- They set user expectations better than a blank screen or spinner alone.
+- They make loading states feel intentional instead of unfinished.
