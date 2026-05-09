@@ -584,3 +584,32 @@ We improved accessibility for interactive controls and status messaging.
 - They reduce layout shift because the final content appears in a stable structure.
 - They set user expectations better than a blank screen or spinner alone.
 - They make loading states feel intentional instead of unfinished.
+
+---
+
+## 23. Memoize List Rendering to Reduce Unnecessary Re-renders
+
+We wrapped the search results list and individual recipe cards with `memo` so React can skip work when props do not change.
+
+### What changed
+
+- `app/components/SearchResults.tsx` now uses `memo`.
+- `app/components/RecipeCard.tsx` now uses `memo`.
+
+### Why this is beneficial
+
+- Parent state changes no longer force every recipe card to rerender if the recipe data stayed the same.
+- Large result lists feel smoother because React does less work on each search update.
+- The app scales better when results grow from a handful of cards to dozens.
+
+### Examples
+
+- If a user opens a search page and the loading state flips from `true` to `false`, only the parts that changed need to update.
+- If you add a `Show more` button and append new recipes, the already visible cards can stay untouched when their props are unchanged.
+- If the favorite state changes somewhere else in the page, the results list does not need to rebuild unless the recipe props themselves changed.
+
+### Tradeoffs
+
+- `memo` helps most when props stay stable between renders.
+- If the app recreates recipe objects every time, the cards will still rerender.
+- This is a targeted optimization, not a replacement for good state design.
