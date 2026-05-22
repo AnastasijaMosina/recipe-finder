@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Recipe } from '../services/spoonacularApi';
 import RecipeCard from './RecipeCard';
 import RecipeCardSkeleton from './RecipeCardSkeleton';
@@ -7,7 +8,7 @@ interface SearchResultsProps {
   isLoading?: boolean;
 }
 
-export default function SearchResults({ results, isLoading }: SearchResultsProps) {
+function SearchResults({ results, isLoading }: SearchResultsProps) {
   if (isLoading) {
     return (
       <section className="search-results" aria-label="Loading search results" aria-busy="true">
@@ -33,3 +34,5 @@ export default function SearchResults({ results, isLoading }: SearchResultsProps
     </section>
   );
 }
+
+export default memo(SearchResults);

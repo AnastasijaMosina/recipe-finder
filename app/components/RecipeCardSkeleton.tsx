@@ -1,8 +1,10 @@
+import { memo } from 'react';
+
 interface RecipeCardSkeletonProps {
   variant?: 'default' | 'featured';
 }
 
-export default function RecipeCardSkeleton({ variant = 'default' }: RecipeCardSkeletonProps) {
+function RecipeCardSkeleton({ variant = 'default' }: RecipeCardSkeletonProps) {
   if (variant === 'featured') {
     return (
       <div className="recipe-card-featured" aria-hidden="true" aria-busy="true">
@@ -37,3 +39,5 @@ export default function RecipeCardSkeleton({ variant = 'default' }: RecipeCardSk
     </div>
   );
 }
+
+export default memo(RecipeCardSkeleton);

@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Image from 'next/image';
 import { Recipe } from '../services/spoonacularApi';
 import FavoriteButton from './FavoriteButton';
@@ -7,7 +8,7 @@ interface RecipeCardProps {
   variant?: 'default' | 'featured';
 }
 
-export default function RecipeCard({ recipe, variant = 'default' }: RecipeCardProps) {
+function RecipeCard({ recipe, variant = 'default' }: RecipeCardProps) {
   if (variant === 'featured') {
     return (
       <article className="recipe-card-featured">
@@ -113,3 +114,8 @@ export default function RecipeCard({ recipe, variant = 'default' }: RecipeCardPr
     </article>
   );
 }
+
+// Memoize to prevent rerenders when parent updates but recipe stays the same
+export default memo(RecipeCard, (prevProps, nextProps) => {
+  return prevProps.recipe.id === nextProps.recipe.id && prevProps.variant === nextProps.variant;
+});
