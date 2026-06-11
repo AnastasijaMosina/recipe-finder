@@ -7,6 +7,14 @@ description: |
   continuously throughout the development cycle.
 
 on:
+  push:
+    branches:
+      - 'feature/**'
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
   schedule: daily
   workflow_dispatch:
 
