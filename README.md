@@ -212,6 +212,12 @@ Those routes call the following Spoonacular endpoints:
 
 ## 🎨 Key Features Explained
 
+### AI Automation
+
+- The repo now includes an agentic CI workflow at [.github/workflows/ci-doctor.md](.github/workflows/ci-doctor.md) for investigating failed GitHub Actions runs.
+- Supporting workflow documentation lives in [AI_WORKFLOWS.md](AI_WORKFLOWS.md).
+- Implementation notes for AI-related repo changes live in [NOTES-AI.md](NOTES-AI.md).
+
 ### Favorites System (localStorage)
 
 - **Storage:** Browser's localStorage (5-10MB capacity)

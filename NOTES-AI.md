@@ -126,3 +126,72 @@ Why this was done now:
 1. The frontend can integrate against a stable API contract before model integration.
 2. API keys and provider logic remain server-side only (BFF pattern).
 3. Validation and error behavior are standardized from day one.
+
+## Step 3 Progress: Strict JSON Prompt + Safe Parsing
+
+Added files:
+
+- `app/domain/ai/aiProviderResponseSchema.ts`
+- `app/services/ai/aiConversationPrompt.ts`
+
+Updated file:
+
+- `app/api/ai/conversation/route.ts`
+
+What was added in Step 3:
+
+1. A strict Zod schema for provider output:
+   - `assistantReply`
+   - `followUpQuestions`
+   - optional `extractedFilters`
+   - `isReadyToSearch`
+2. A server-side prompt builder that instructs the model to return strict JSON only.
+3. A parser function that:
+   - `JSON.parse`s raw model text
+   - validates it with `safeParse`
+4. Route fallback behavior:
+   - if parse/validation fails, return a safe fallback assistant message.
+
+Why this matters:
+
+1. The route becomes deterministic even when model output is unreliable.
+2. Frontend consumers always receive a stable contract shape.
+3. This reduces breakage risk before real provider integration.
+
+## Knowledge: Step 3 - Strict JSON Prompt + Safe Parsing
+
+What was added:
+
+- `app/domain/ai/aiProviderResponseSchema.ts` with strict provider output validation.
+- `app/services/ai/aiConversationPrompt.ts` to enforce JSON-only provider responses.
+- Route parsing + fallback handling in `app/api/ai/conversation/route.ts`.
+
+Why it was done:
+
+- AI model output can be inconsistent, so server-side contract enforcement is needed.
+- The frontend requires a predictable payload shape for reliable rendering and flow control.
+
+Benefits:
+
+- Reduces runtime failures from malformed provider text.
+- Keeps API responses stable even when provider output is invalid.
+- Improves maintainability by centralizing prompt and schema responsibilities.
+
+## Knowledge: CI Doctor Agentic Workflow
+
+What was added:
+
+- A new GitHub Actions workflow at `.github/workflows/ci-doctor.md`.
+- A repo-level index in `AI_WORKFLOWS.md` that points to the workflow.
+- Documentation describing the workflow's failure-investigation, deduplication, and reporting behavior.
+
+Why it was done:
+
+- Makes the new agentic workflow discoverable from the repo docs instead of being hidden in the workflows folder.
+- Keeps the workflow's purpose and output contract explicit for future maintainers.
+
+Benefits:
+
+- Faster onboarding for CI automation behavior.
+- Clearer separation between executable workflow files and documentation indexes.
+- Easier to extend with additional agentic workflows later.
