@@ -48,10 +48,10 @@ steps:
       persist-credentials: false
   - name: Build and run app in background
     run: |
-      # This step should set up the runtime environment for your app, 
-      # including installing any necessary dependencies, and it should
-      # start your app in the background (e.g., using `&` at the end of the command).
-      echo "Building and running the app in background..."
+      npm ci
+      npm run build
+      npm run start &
+      sleep 5
 ---
 
 # Accessibility Review
