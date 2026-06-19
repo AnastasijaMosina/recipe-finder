@@ -14,6 +14,7 @@ import {
 import {
   detectMissingSlots,
   generateFollowUpQuestions,
+  generatePossibleAnswers,
   isReadyToSearch,
 } from '../../../services/ai/slotFilling';
 import { extractFiltersFromConversation } from '../../../services/ai/ruleBasedFilterExtractor';
@@ -31,6 +32,7 @@ const aiConversationRequestSchema = z.object({
 const aiConversationRouteResponseSchema = z.object({
   assistantReply: z.string().trim().min(1),
   followUpQuestions: z.array(z.string().trim().min(1)),
+  possibleAnswers: z.array(z.string().trim().min(1)),
   extractedFilters: aiConversationStateSchema.shape.extractedFilters.optional(),
   isReadyToSearch: z.boolean(),
 });
@@ -42,6 +44,7 @@ const FALLBACK_ASSISTANT_RESPONSE: AiConversationRouteResponse = {
   assistantReply:
     'I could not process that request safely. Please try again with a short recipe preference.',
   followUpQuestions: ['What meal type do you want (breakfast, lunch, dinner)?'],
+  possibleAnswers: ['breakfast', 'lunch', 'dinner', 'snack'],
   isReadyToSearch: false,
 };
 
@@ -80,6 +83,7 @@ export async function POST(request: NextRequest) {
     const missingSlots = detectMissingSlots(extractedFilters);
     const readyToSearch = isReadyToSearch(extractedFilters);
     const followUpQuestions = generateFollowUpQuestions(missingSlots);
+    const possibleAnswers = generatePossibleAnswers(missingSlots);
 
     const conversationState = aiConversationStateSchema.parse({
       ...createInitialAiConversationState(),
@@ -98,6 +102,7 @@ export async function POST(request: NextRequest) {
     const responsePayload: AiConversationRouteResponse = {
       assistantReply,
       followUpQuestions: conversationState.followUpQuestions,
+      possibleAnswers,
       isReadyToSearch: conversationState.isReadyToSearch,
       ...(Object.keys(conversationState.extractedFilters).length > 0
         ? { extractedFilters: conversationState.extractedFilters }

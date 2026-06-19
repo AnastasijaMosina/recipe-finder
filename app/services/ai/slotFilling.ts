@@ -9,6 +9,14 @@ const SLOT_QUESTIONS: Record<AiMissingSlot, string> = {
   maxReadyTime: 'How many minutes do you have to prepare the meal?',
 };
 
+const SLOT_POSSIBLE_ANSWERS: Record<AiMissingSlot, string[]> = {
+  type: ['breakfast', 'lunch', 'dinner', 'snack'],
+  cuisine: ['italian', 'mexican', 'asian', 'mediterranean'],
+  includeIngredients: ['chicken', 'beef', 'fish', 'tofu'],
+  excludeIngredients: ['dairy', 'nuts', 'gluten', 'shellfish'],
+  maxReadyTime: ['15', '30', '45', '60'],
+};
+
 /**
  * Slots that must be present for a search to run.
  * At least one of these must have a value before isReadyToSearch becomes true.
@@ -40,3 +48,16 @@ export const isReadyToSearch = (filters: RecipeSearchFilters): boolean =>
  */
 export const generateFollowUpQuestions = (missingSlots: AiMissingSlot[]): string[] =>
   missingSlots.map((slot) => SLOT_QUESTIONS[slot]);
+
+/**
+ * Returns quick reply options for the current missing slot.
+ * Uses the first missing slot to keep suggestions focused.
+ */
+export const generatePossibleAnswers = (missingSlots: AiMissingSlot[]): string[] => {
+  const firstMissingSlot = missingSlots[0];
+  if (!firstMissingSlot) {
+    return [];
+  }
+
+  return SLOT_POSSIBLE_ANSWERS[firstMissingSlot];
+};

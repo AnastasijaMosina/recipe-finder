@@ -2,7 +2,6 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import '../css/recipeSearch.css';
 import ErrorMessage from '../components/ErrorMessage';
 import type { SearchQueryParams } from '../domain/search/searchFiltersSchema';
 
@@ -14,6 +13,7 @@ type ConversationMessage = {
 type AiConversationResponse = {
   assistantReply: string;
   followUpQuestions: string[];
+  possibleAnswers: string[];
   extractedFilters?: SearchQueryParams;
   isReadyToSearch: boolean;
 };
@@ -36,7 +36,7 @@ const AiPage = () => {
     },
   ]);
   const [input, setInput] = useState('');
-  const [followUpQuestions, setFollowUpQuestions] = useState<string[]>([]);
+  const [possibleAnswers, setPossibleAnswers] = useState<string[]>([]);
   const [filters, setFilters] = useState<SearchQueryParams>({});
   const [readyToSearch, setReadyToSearch] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -80,7 +80,7 @@ const AiPage = () => {
       const data: AiConversationResponse = await response.json();
 
       setMessages((prev) => [...prev, { role: 'assistant', content: data.assistantReply }]);
-      setFollowUpQuestions(data.followUpQuestions);
+      setPossibleAnswers(data.possibleAnswers);
       setReadyToSearch(data.isReadyToSearch);
       setFilters(data.extractedFilters ?? {});
     } catch (error) {
@@ -151,18 +151,18 @@ const AiPage = () => {
           </button>
         </form>
 
-        {followUpQuestions.length > 0 && (
-          <section aria-label="Follow-up suggestions">
-            <h3 className="ai-panel-title">Follow-up Questions</h3>
+        {possibleAnswers.length > 0 && (
+          <section aria-label="Possible answers">
+            <h3 className="ai-panel-title">Possible Answers</h3>
             <div className="ai-chip-list">
-              {followUpQuestions.map((question, index) => (
+              {possibleAnswers.map((answer, index) => (
                 <button
                   type="button"
-                  key={`${question}-${index}`}
+                  key={`${answer}-${index}`}
                   className="btn btn-secondary ai-chip"
-                  onClick={() => setInput(question)}
+                  onClick={() => setInput(answer)}
                 >
-                  {question}
+                  {answer}
                 </button>
               ))}
             </div>
