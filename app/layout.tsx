@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './css/globals.css';
+import './css/recipeSearch.css';
 import Header from './components/Header';
 import { FavoritesProvider } from './domain/favorites/FavoritesContext';
 import SWRProvider from './providers/SWRProvider';

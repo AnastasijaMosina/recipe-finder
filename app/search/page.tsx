@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
-import '../css/recipeSearch.css';
 import RecipeSearchForm from '../components/RecipeSearchForm';
 import SearchResults from '../components/SearchResults';
 import ErrorMessage from '../components/ErrorMessage';

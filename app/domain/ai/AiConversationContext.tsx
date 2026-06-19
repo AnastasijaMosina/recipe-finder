@@ -37,7 +37,7 @@ const initialState: AiConversationState = {
     {
       role: 'assistant',
       content:
-        'Tell me what you are craving, and I will ask follow-up questions until we can search.',
+        'Tell me what you are craving, and I will suggest possible answers until we can search.',
     },
   ],
   input: '',
@@ -65,6 +65,7 @@ const aiConversationReducer = (
         errorMessage: null,
         input: '',
         isSubmitting: true,
+        possibleAnswers: [],
         messages: [...state.messages, { role: 'user', content: action.payload.userMessage }],
       };
 
@@ -77,7 +78,7 @@ const aiConversationReducer = (
         ],
         possibleAnswers: action.payload.possibleAnswers,
         readyToSearch: action.payload.isReadyToSearch,
-        filters: action.payload.extractedFilters ?? {},
+        filters: action.payload.extractedFilters ?? state.filters,
       };
 
     case 'set_error':

@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useFavorites } from '../domain/favorites/FavoritesContext';
 import RecipeCard from '../components/RecipeCard';
 import RecipeCardSkeleton from '../components/RecipeCardSkeleton';
-import '../css/recipeSearch.css';
 
 export default function FavoritesPage() {
   const router = useRouter();

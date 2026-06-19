@@ -14,7 +14,7 @@ import { spoonacularApi } from '../services/spoonacularApi';
 import { mapAiFiltersToSearchParams } from '../services/ai/aiSearchAdapter';
 
 type AiConversationResponse = AiConversationTurnResult & {
-  followUpQuestions: string[];
+  followUpQuestions?: string[];
 };
 
 const FILTER_FIELDS: Array<{ key: keyof SearchQueryParams; label: string }> = [
@@ -83,9 +83,14 @@ const AiPage = () => {
         throw new Error('Failed to get AI response. Please try again.');
       }
 
-      const data: AiConversationResponse = await response.json();
+      const responseJson: Partial<AiConversationResponse> = await response.json();
 
-      applyAssistantResponse(data);
+      applyAssistantResponse({
+        assistantReply: responseJson.assistantReply ?? 'I could not generate a response.',
+        possibleAnswers: responseJson.possibleAnswers ?? [],
+        extractedFilters: responseJson.extractedFilters,
+        isReadyToSearch: responseJson.isReadyToSearch ?? false,
+      });
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unexpected error.');
     } finally {

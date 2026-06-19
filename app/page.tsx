@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import useSWRMutation from 'swr/mutation';
-import './css/recipeSearch.css';
 import { spoonacularApi } from './services/spoonacularApi';
 import RandomRecipeButton from './components/RandomRecipeButton';
 import RecipeCard from './components/RecipeCard';
