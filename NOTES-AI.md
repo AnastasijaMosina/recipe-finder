@@ -216,3 +216,21 @@ Benefits:
 
 - AI chat now transitions directly from readiness to real recipe results.
 - Search rendering behavior remains consistent with the existing search experience.
+
+## Knowledge: Step 8 - Add Focused Conversation State Management
+
+What was added:
+
+- `app/domain/ai/AiConversationContext.tsx` — specialized AI conversation context built on a reducer with explicit actions (`set_input`, `start_submit`, `apply_assistant_response`, `set_error`, `finish_submit`).
+- `app/ai/layout.tsx` — route-scoped provider wrapper (`AiConversationProvider`) so AI state management is isolated to the AI feature.
+- `app/ai/page.tsx` refactored to consume context state/actions instead of multiple local `useState` calls.
+
+Why it was done:
+
+- Centralizes conversation state transitions in one reducer instead of scattered component state updates.
+- Aligns with the existing multi-context architecture approach already used in the app.
+
+Benefits:
+
+- State transitions are more predictable and easier to test/debug.
+- AI page UI now focuses on rendering and API calls, while conversation state logic is reusable and isolated.

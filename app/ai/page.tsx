@@ -1,25 +1,20 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import ErrorMessage from '../components/ErrorMessage';
 import SearchResults from '../components/SearchResults';
 import type { SearchQueryParams } from '../domain/search/searchFiltersSchema';
+import {
+  type AiConversationTurnResult,
+  useAiConversation,
+} from '../domain/ai/AiConversationContext';
 import { spoonacularApi } from '../services/spoonacularApi';
 import { mapAiFiltersToSearchParams } from '../services/ai/aiSearchAdapter';
 
-type ConversationMessage = {
-  role: 'user' | 'assistant';
-  content: string;
-};
-
-type AiConversationResponse = {
-  assistantReply: string;
+type AiConversationResponse = AiConversationTurnResult & {
   followUpQuestions: string[];
-  possibleAnswers: string[];
-  extractedFilters?: SearchQueryParams;
-  isReadyToSearch: boolean;
 };
 
 const FILTER_FIELDS: Array<{ key: keyof SearchQueryParams; label: string }> = [
@@ -32,19 +27,11 @@ const FILTER_FIELDS: Array<{ key: keyof SearchQueryParams; label: string }> = [
 
 const AiPage = () => {
   const router = useRouter();
-  const [messages, setMessages] = useState<ConversationMessage[]>([
-    {
-      role: 'assistant',
-      content:
-        'Tell me what you are craving, and I will ask follow-up questions until we can search.',
-    },
-  ]);
-  const [input, setInput] = useState('');
-  const [possibleAnswers, setPossibleAnswers] = useState<string[]>([]);
-  const [filters, setFilters] = useState<SearchQueryParams>({});
-  const [readyToSearch, setReadyToSearch] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { state, setInput, startSubmit, applyAssistantResponse, setError, finishSubmit } =
+    useAiConversation();
+
+  const { messages, input, possibleAnswers, filters, readyToSearch, errorMessage, isSubmitting } =
+    state;
 
   const normalizedSearchFilters = useMemo(() => mapAiFiltersToSearchParams(filters), [filters]);
   const hasSearchFilters = Object.values(normalizedSearchFilters).some(Boolean);
@@ -75,14 +62,10 @@ const AiPage = () => {
       return;
     }
 
-    setErrorMessage(null);
-
     const trimmedMessage = userMessage.trim();
     const history = messages;
 
-    setMessages((prev) => [...prev, { role: 'user', content: trimmedMessage }]);
-    setInput('');
-    setIsSubmitting(true);
+    startSubmit(trimmedMessage);
 
     try {
       const response = await fetch('/api/ai/conversation', {
@@ -102,14 +85,11 @@ const AiPage = () => {
 
       const data: AiConversationResponse = await response.json();
 
-      setMessages((prev) => [...prev, { role: 'assistant', content: data.assistantReply }]);
-      setPossibleAnswers(data.possibleAnswers);
-      setReadyToSearch(data.isReadyToSearch);
-      setFilters(data.extractedFilters ?? {});
+      applyAssistantResponse(data);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unexpected error.');
+      setError(error instanceof Error ? error.message : 'Unexpected error.');
     } finally {
-      setIsSubmitting(false);
+      finishSubmit();
     }
   };
 
