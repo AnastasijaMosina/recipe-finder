@@ -65,7 +65,7 @@ missingSlots: required fields still empty.
 followUpQuestions: what assistant should ask next.
 isReadyToSearch: true only when you have enough info to run search.
 
-## 2. Add AI Feature Route Skeleton (BFF Pattern)
+## 2. Add AI Feature Route Skeleton (BFF Pattern) ✅
 
 Add:
 
