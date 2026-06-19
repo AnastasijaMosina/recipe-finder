@@ -71,6 +71,17 @@ const addUnique = (current: string[], incoming: string[]) => {
   }
 };
 
+const escapeRegex = (value: string): string => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const hasNegativeIngredientPattern = (normalized: string, keyword: string): boolean => {
+  const escapedKeyword = escapeRegex(keyword);
+  const keywordPattern = `${escapedKeyword}(?:es|s)?`;
+
+  return new RegExp(
+    `\\b(?:no|without|exclude|excluding|avoid|except|anything\\s+except|anything\\s+but)\\s+${keywordPattern}\\b`
+  ).test(normalized);
+};
+
 const extractMaxReadyTime = (text: string): string | undefined => {
   const underMatch = text.match(/(?:under|less than)\s+(\d{1,3})\s*(?:minutes|minute|mins|min)?/i);
   if (underMatch?.[1]) {
@@ -99,11 +110,7 @@ const extractExcludedIngredients = (normalized: string): string[] => {
   const results: string[] = [];
 
   for (const keyword of COMMON_INGREDIENT_KEYWORDS) {
-    const isExcluded =
-      normalized.includes(`no ${keyword}`) ||
-      normalized.includes(`without ${keyword}`) ||
-      normalized.includes(`exclude ${keyword}`) ||
-      normalized.includes(`avoid ${keyword}`);
+    const isExcluded = hasNegativeIngredientPattern(normalized, keyword);
 
     if (isExcluded) {
       results.push(keyword);
@@ -147,6 +154,9 @@ const mergeTextIntoFilters = (
   addUnique(nextExcluded, extractedExcluded);
   addUnique(nextIncluded, extractedIncluded);
 
+  // Excluded ingredients should never remain in includeIngredients.
+  const filteredIncluded = nextIncluded.filter((ingredient) => !nextExcluded.includes(ingredient));
+
   const nextCuisine = extractCuisine(normalized) ?? currentFilters.cuisine;
   const nextMealType = extractMealType(normalized) ?? currentFilters.type;
   const nextMaxReadyTime = extractMaxReadyTime(text) ?? currentFilters.maxReadyTime;
@@ -154,7 +164,7 @@ const mergeTextIntoFilters = (
   return {
     cuisine: nextCuisine,
     type: nextMealType,
-    includeIngredients: toCsv(nextIncluded),
+    includeIngredients: toCsv(filteredIncluded),
     excludeIngredients: toCsv(nextExcluded),
     maxReadyTime: nextMaxReadyTime,
   };

@@ -180,3 +180,21 @@ Benefits:
 
 - Users can interact with the AI route immediately and see normalized filters/state evolve per turn.
 - Follow-up prompts and interpreted filters are visible in one place, making slot-filling behavior easier to validate.
+
+## Knowledge: Step 5.5 - Interim Conversation Extraction Fix
+
+What was added:
+
+- `app/services/ai/ruleBasedFilterExtractor.ts` — lightweight parser that extracts `type`, `cuisine`, `includeIngredients`, `excludeIngredients`, and `maxReadyTime` from user conversation text.
+- `app/api/ai/conversation/route.ts` now merges parsed filters from `conversationHistory` + `latestUserMessage` instead of relying on the mock provider payload.
+- Route follow-up logic now uses slot-derived questions only, and returns a ready-to-search assistant message when required slots are filled.
+
+Why it was done:
+
+- The mock provider currently returns empty `extractedFilters`, which caused repeated follow-up questions even after users provided valid answers (for example, `dinner`).
+- An interim deterministic parser keeps the chat flow usable until real model extraction is integrated.
+
+Benefits:
+
+- User answers now update interpreted filters across turns, so the same question is not asked repeatedly.
+- Readiness transitions are now aligned with actual conversation content, improving local testing and demo reliability.
