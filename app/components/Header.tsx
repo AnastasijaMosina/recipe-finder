@@ -28,6 +28,13 @@ const Header = () => {
             🔍 Search
           </Link>
           <Link
+            href="/ai"
+            className={`nav-link ${pathname === '/ai' ? 'active' : ''}`}
+            aria-current={pathname === '/ai' ? 'page' : undefined}
+          >
+            🤖 AI Chat
+          </Link>
+          <Link
             href="/favorites"
             className={`nav-link ${pathname === '/favorites' ? 'active' : ''}`}
             aria-current={pathname === '/favorites' ? 'page' : undefined}

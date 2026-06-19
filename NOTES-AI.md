@@ -162,3 +162,21 @@ Benefits:
 
 - Adding or changing slot rules requires editing one file only.
 - `isReadyToSearch` is now determined server-side by a deterministic rule, independent of whatever the AI provider returned.
+
+## Knowledge: Step 5 - Build AI Chat Page and Navigation Entry
+
+What was added:
+
+- `app/ai/page.tsx` — new client chat page with message list, text input + send button, follow-up suggestion chips, and interpreted filters panel.
+- `app/components/Header.tsx` — primary navigation now includes an `AI Chat` entry to `/ai`.
+- `app/css/recipeSearch.css` — AI chat styles added for message bubbles, chip list, readiness pill, and mobile layout behavior.
+
+Why it was done:
+
+- Delivers a usable text-first AI flow before voice and full search-trigger integration steps.
+- Keeps the UI aligned with existing page/header patterns and shared styling.
+
+Benefits:
+
+- Users can interact with the AI route immediately and see normalized filters/state evolve per turn.
+- Follow-up prompts and interpreted filters are visible in one place, making slot-filling behavior easier to validate.
