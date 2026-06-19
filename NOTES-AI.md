@@ -198,3 +198,21 @@ Benefits:
 
 - User answers now update interpreted filters across turns, so the same question is not asked repeatedly.
 - Readiness transitions are now aligned with actual conversation content, improving local testing and demo reliability.
+
+## Knowledge: Step 7 - Connect AI Readiness to Existing Search API
+
+What was added:
+
+- `app/services/ai/aiSearchAdapter.ts` with `mapAiFiltersToSearchParams`, which normalizes AI-extracted filters into the existing search query shape.
+- `app/ai/page.tsx` now triggers recipe search through `spoonacularApi.searchRecipes` when `isReadyToSearch` is true and normalized filters are present.
+- `app/ai/page.tsx` now renders existing `SearchResults` (and existing `ErrorMessage`) so recipe output reuses the same UI path as the search page.
+
+Why it was done:
+
+- Avoids creating a parallel backend/frontend path for AI results.
+- Keeps query normalization deterministic before calling the existing recipe endpoint.
+
+Benefits:
+
+- AI chat now transitions directly from readiness to real recipe results.
+- Search rendering behavior remains consistent with the existing search experience.

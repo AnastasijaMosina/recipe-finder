@@ -2,8 +2,12 @@
 
 import { FormEvent, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import useSWR from 'swr';
 import ErrorMessage from '../components/ErrorMessage';
+import SearchResults from '../components/SearchResults';
 import type { SearchQueryParams } from '../domain/search/searchFiltersSchema';
+import { spoonacularApi } from '../services/spoonacularApi';
+import { mapAiFiltersToSearchParams } from '../services/ai/aiSearchAdapter';
 
 type ConversationMessage = {
   role: 'user' | 'assistant';
@@ -41,6 +45,25 @@ const AiPage = () => {
   const [readyToSearch, setReadyToSearch] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const normalizedSearchFilters = useMemo(() => mapAiFiltersToSearchParams(filters), [filters]);
+  const hasSearchFilters = Object.values(normalizedSearchFilters).some(Boolean);
+  const searchKey =
+    readyToSearch && hasSearchFilters
+      ? (['ai-recipe-search', normalizedSearchFilters] as const)
+      : null;
+
+  const {
+    data: searchResults = [],
+    error: searchError,
+    isLoading: isSearching,
+    isValidating,
+  } = useSWR(searchKey, ([, searchFilters]) => spoonacularApi.searchRecipes(searchFilters), {
+    keepPreviousData: true,
+    revalidateIfStale: false,
+  });
+
+  const isSearchBusy = isSearching || isValidating;
 
   const visibleFilterItems = useMemo(
     () => FILTER_FIELDS.filter(({ key }) => Boolean(filters[key])),
@@ -189,6 +212,16 @@ const AiPage = () => {
             </ul>
           )}
         </section>
+
+        {searchError && (
+          <ErrorMessage
+            message={
+              searchError instanceof Error ? searchError.message : 'Failed to search recipes'
+            }
+          />
+        )}
+
+        <SearchResults results={searchResults} isLoading={isSearchBusy} />
       </div>
     </main>
   );

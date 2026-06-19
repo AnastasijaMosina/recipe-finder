@@ -167,7 +167,7 @@ Why:
 
 ---
 
-## 6. Add Voice Input (Speech-to-Text)
+## 6. Add Voice Input (Speech-to-Text) - SKIPPED - will be implemented separately
 
 Add:
 
@@ -191,7 +191,7 @@ Why:
 
 ---
 
-## 7. Connect AI Readiness to Existing Search API
+## 7. Connect AI Readiness to Existing Search API ✅
 
 Add:
 
