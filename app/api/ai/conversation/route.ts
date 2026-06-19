@@ -16,6 +16,7 @@ import {
   generateFollowUpQuestions,
   isReadyToSearch,
 } from '../../../services/ai/slotFilling';
+import { extractFiltersFromConversation } from '../../../services/ai/ruleBasedFilterExtractor';
 
 const conversationMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
@@ -71,16 +72,14 @@ export async function POST(request: NextRequest) {
 
     const normalizedProviderResponse = aiProviderResponseSchema.parse(parsedProviderResponse.data);
 
-    const extractedFilters = normalizedProviderResponse.extractedFilters ?? {};
+    const extractedFilters = extractFiltersFromConversation({
+      conversationHistory,
+      latestUserMessage,
+      baseFilters: normalizedProviderResponse.extractedFilters ?? {},
+    });
     const missingSlots = detectMissingSlots(extractedFilters);
     const readyToSearch = isReadyToSearch(extractedFilters);
-    const slotFollowUpQuestions = generateFollowUpQuestions(missingSlots);
-
-    // Prefer slot-derived follow-ups; fall back to provider-supplied ones if slots are all filled.
-    const followUpQuestions =
-      slotFollowUpQuestions.length > 0
-        ? slotFollowUpQuestions
-        : normalizedProviderResponse.followUpQuestions;
+    const followUpQuestions = generateFollowUpQuestions(missingSlots);
 
     const conversationState = aiConversationStateSchema.parse({
       ...createInitialAiConversationState(),
@@ -91,8 +90,13 @@ export async function POST(request: NextRequest) {
       isReadyToSearch: readyToSearch,
     });
 
+    const assistantReply =
+      conversationState.followUpQuestions.length > 0
+        ? `Got it. ${conversationState.followUpQuestions[0]}`
+        : 'Great, I have enough details. I can search recipes now.';
+
     const responsePayload: AiConversationRouteResponse = {
-      assistantReply: `Got it. ${conversationState.followUpQuestions[0]}`,
+      assistantReply,
       followUpQuestions: conversationState.followUpQuestions,
       isReadyToSearch: conversationState.isReadyToSearch,
       ...(Object.keys(conversationState.extractedFilters).length > 0
