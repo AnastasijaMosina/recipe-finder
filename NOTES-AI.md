@@ -144,3 +144,21 @@ Benefits:
 
 - Every model response is validated at the boundary; invalid output falls back gracefully.
 - Prompt template and schema live in dedicated files, making provider swap straightforward.
+
+## Knowledge: Step 4 - Implement Slot-Filling Question Logic
+
+What was added:
+
+- `app/services/ai/slotFilling.ts` — three exported helpers: `detectMissingSlots`, `isReadyToSearch`, and `generateFollowUpQuestions`.
+- `SLOT_QUESTIONS` map — one human-readable question per filter slot (`type`, `cuisine`, `includeIngredients`, `excludeIngredients`, `maxReadyTime`).
+- `MINIMUM_REQUIRED_SLOTS` rule — at least one of `type` or `includeIngredients` must be filled before `isReadyToSearch` returns `true`.
+
+Why it was done:
+
+- Keeps readiness rules and question generation in a testable service layer, not scattered across the route or UI components.
+- Replaces the hardcoded fallback question in the route with slot-derived questions.
+
+Benefits:
+
+- Adding or changing slot rules requires editing one file only.
+- `isReadyToSearch` is now determined server-side by a deterministic rule, independent of whatever the AI provider returned.

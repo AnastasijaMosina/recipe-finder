@@ -11,6 +11,11 @@ import {
   createMockProviderJsonResponse,
   parseAiProviderResponse,
 } from '../../../services/ai/aiConversationPrompt';
+import {
+  detectMissingSlots,
+  generateFollowUpQuestions,
+  isReadyToSearch,
+} from '../../../services/ai/slotFilling';
 
 const conversationMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
@@ -66,16 +71,24 @@ export async function POST(request: NextRequest) {
 
     const normalizedProviderResponse = aiProviderResponseSchema.parse(parsedProviderResponse.data);
 
-    // Skeleton response only. Model integration and slot filling are added in later steps.
+    const extractedFilters = normalizedProviderResponse.extractedFilters ?? {};
+    const missingSlots = detectMissingSlots(extractedFilters);
+    const readyToSearch = isReadyToSearch(extractedFilters);
+    const slotFollowUpQuestions = generateFollowUpQuestions(missingSlots);
+
+    // Prefer slot-derived follow-ups; fall back to provider-supplied ones if slots are all filled.
+    const followUpQuestions =
+      slotFollowUpQuestions.length > 0
+        ? slotFollowUpQuestions
+        : normalizedProviderResponse.followUpQuestions;
+
     const conversationState = aiConversationStateSchema.parse({
       ...createInitialAiConversationState(),
       intentText: latestUserMessage,
-      extractedFilters: normalizedProviderResponse.extractedFilters ?? {},
-      followUpQuestions:
-        normalizedProviderResponse.followUpQuestions.length > 0
-          ? normalizedProviderResponse.followUpQuestions
-          : ['Any preferred cuisine?'],
-      isReadyToSearch: normalizedProviderResponse.isReadyToSearch,
+      extractedFilters,
+      missingSlots,
+      followUpQuestions,
+      isReadyToSearch: readyToSearch,
     });
 
     const responsePayload: AiConversationRouteResponse = {
