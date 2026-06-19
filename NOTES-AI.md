@@ -126,3 +126,21 @@ Why this was done now:
 1. The frontend can integrate against a stable API contract before model integration.
 2. API keys and provider logic remain server-side only (BFF pattern).
 3. Validation and error behavior are standardized from day one.
+
+## Knowledge: Step 3 - Create Prompt Strategy with Strict JSON Output
+
+What was added:
+
+- `app/domain/ai/aiProviderResponseSchema.ts` — Zod schema for the AI provider response shape (`assistantReply`, `followUpQuestions`, `extractedFilters`, `isReadyToSearch`).
+- `app/services/ai/aiConversationPrompt.ts` — server-side prompt builder (`buildAiConversationPrompt`), safe response parser (`parseAiProviderResponse`), and mock provider helper (`createMockProviderJsonResponse`).
+- `FALLBACK_ASSISTANT_RESPONSE` constant in the route returned when `safeParse` fails.
+
+Why it was done:
+
+- Strict JSON-only prompt and `safeParse` ensure malformed model output never causes an unhandled crash.
+- Mock provider helper lets the route run end-to-end before a real AI provider is wired in.
+
+Benefits:
+
+- Every model response is validated at the boundary; invalid output falls back gracefully.
+- Prompt template and schema live in dedicated files, making provider swap straightforward.

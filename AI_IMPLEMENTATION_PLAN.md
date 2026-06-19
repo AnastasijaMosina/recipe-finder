@@ -93,7 +93,7 @@ Why:
 
 ---
 
-## 3. Create Prompt Strategy with Strict JSON Output
+## 3. Create Prompt Strategy with Strict JSON Output ✅
 
 Add:
 

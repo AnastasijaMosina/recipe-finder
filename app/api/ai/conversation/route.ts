@@ -4,7 +4,13 @@ import {
   aiConversationStateSchema,
   createInitialAiConversationState,
 } from '../../../domain/ai/conversationContract';
+import { aiProviderResponseSchema } from '../../../domain/ai/aiProviderResponseSchema';
 import { ApiError, errorResponse } from '../../../utils/apiErrorHandler';
+import {
+  buildAiConversationPrompt,
+  createMockProviderJsonResponse,
+  parseAiProviderResponse,
+} from '../../../services/ai/aiConversationPrompt';
 
 const conversationMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
@@ -26,6 +32,13 @@ const aiConversationRouteResponseSchema = z.object({
 export type AiConversationRequest = z.infer<typeof aiConversationRequestSchema>;
 export type AiConversationRouteResponse = z.infer<typeof aiConversationRouteResponseSchema>;
 
+const FALLBACK_ASSISTANT_RESPONSE: AiConversationRouteResponse = {
+  assistantReply:
+    'I could not process that request safely. Please try again with a short recipe preference.',
+  followUpQuestions: ['What meal type do you want (breakfast, lunch, dinner)?'],
+  isReadyToSearch: false,
+};
+
 export async function POST(request: NextRequest) {
   try {
     const rawBody: unknown = await request.json();
@@ -37,16 +50,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { latestUserMessage } = parsedRequest.data;
+    const { conversationHistory, latestUserMessage } = parsedRequest.data;
+
+    // Step 3 skeleton: build strict JSON prompt now, and swap the mock provider later.
+    const prompt = buildAiConversationPrompt({ conversationHistory, latestUserMessage });
+    void prompt;
+
+    // Placeholder model call; replaced by real provider call in the integration step.
+    const rawProviderResponse = createMockProviderJsonResponse(latestUserMessage);
+    const parsedProviderResponse = parseAiProviderResponse(rawProviderResponse);
+
+    if (!parsedProviderResponse.success) {
+      return NextResponse.json(FALLBACK_ASSISTANT_RESPONSE);
+    }
+
+    const normalizedProviderResponse = aiProviderResponseSchema.parse(parsedProviderResponse.data);
 
     // Skeleton response only. Model integration and slot filling are added in later steps.
     const conversationState = aiConversationStateSchema.parse({
       ...createInitialAiConversationState(),
       intentText: latestUserMessage,
-      followUpQuestions: [
-        'What meal type do you want (breakfast, lunch, dinner)?',
-        'Any preferred cuisine?',
-      ],
+      extractedFilters: normalizedProviderResponse.extractedFilters ?? {},
+      followUpQuestions:
+        normalizedProviderResponse.followUpQuestions.length > 0
+          ? normalizedProviderResponse.followUpQuestions
+          : ['Any preferred cuisine?'],
+      isReadyToSearch: normalizedProviderResponse.isReadyToSearch,
     });
 
     const responsePayload: AiConversationRouteResponse = {
@@ -58,7 +87,9 @@ export async function POST(request: NextRequest) {
         : {}),
     };
 
-    return NextResponse.json(responsePayload);
+    const validatedResponsePayload = aiConversationRouteResponseSchema.parse(responsePayload);
+
+    return NextResponse.json(validatedResponsePayload);
   } catch (err) {
     if (err instanceof SyntaxError) {
       return errorResponse(
