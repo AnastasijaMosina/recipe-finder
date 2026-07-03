@@ -17,31 +17,53 @@ const SLOT_POSSIBLE_ANSWERS: Record<AiMissingSlot, string[]> = {
   maxReadyTime: ['15', '30', '45', '60'],
 };
 
-/**
- * Slots that must be present for a search to run.
- * At least one of these must have a value before isReadyToSearch becomes true.
- */
-const MINIMUM_REQUIRED_SLOTS: ReadonlyArray<AiMissingSlot> = ['type', 'includeIngredients'];
+export const OPTIONAL_PREFERENCE_SLOTS: ReadonlyArray<AiMissingSlot> = [
+  'cuisine',
+  'includeIngredients',
+  'excludeIngredients',
+];
+
+export type OptionalPreferenceSlot = (typeof OPTIONAL_PREFERENCE_SLOTS)[number];
+
+const hasValue = (value?: string): boolean => value !== undefined && value.trim() !== '';
+
+const hasSecondaryPreference = (filters: RecipeSearchFilters): boolean =>
+  hasValue(filters.cuisine) ||
+  hasValue(filters.includeIngredients) ||
+  hasValue(filters.excludeIngredients);
 
 /**
- * Returns the slot keys that are still missing from the extracted filters.
- * Only checks the minimum required set — optional slots are not flagged here.
+ * Required data contract before search:
+ * 1) meal type is required
+ * 2) at least one of cuisine/includeIngredients/excludeIngredients is required
  */
-export const detectMissingSlots = (filters: RecipeSearchFilters): AiMissingSlot[] =>
-  MINIMUM_REQUIRED_SLOTS.filter((slot) => {
-    const value = filters[slot];
-    return value === undefined || value === '';
-  });
+export const detectMissingSlots = (
+  filters: RecipeSearchFilters,
+  declinedOptionalSlots: ReadonlyArray<AiMissingSlot> = []
+): AiMissingSlot[] => {
+  if (!hasValue(filters.type)) {
+    // Ask for meal type first to keep the conversation focused.
+    return ['type'];
+  }
+
+  if (!hasSecondaryPreference(filters)) {
+    const nextOptionalSlot = OPTIONAL_PREFERENCE_SLOTS.find(
+      (slot) => !declinedOptionalSlots.includes(slot)
+    );
+
+    // If all optional slots were declined, force one final required preference request.
+    return nextOptionalSlot ? [nextOptionalSlot] : ['includeIngredients'];
+  }
+
+  return [];
+};
 
 /**
  * Returns true when enough filter data is present to run a recipe search.
- * Requires at least one of the minimum required slots to be filled.
+ * Requires meal type AND at least one secondary preference.
  */
 export const isReadyToSearch = (filters: RecipeSearchFilters): boolean =>
-  MINIMUM_REQUIRED_SLOTS.some((slot) => {
-    const value = filters[slot];
-    return value !== undefined && value !== '';
-  });
+  hasValue(filters.type) && hasSecondaryPreference(filters);
 
 /**
  * Maps missing slot keys to human-readable follow-up questions.
@@ -61,3 +83,19 @@ export const generatePossibleAnswers = (missingSlots: AiMissingSlot[]): string[]
 
   return SLOT_POSSIBLE_ANSWERS[firstMissingSlot];
 };
+
+export const detectAskedSlotFromAssistantMessage = (
+  assistantMessage: string
+): AiMissingSlot | undefined => {
+  const normalizedMessage = assistantMessage.toLowerCase();
+  const matchedEntry = Object.entries(SLOT_QUESTIONS).find(([, question]) =>
+    normalizedMessage.includes(question.toLowerCase())
+  );
+
+  return matchedEntry?.[0] as AiMissingSlot | undefined;
+};
+
+export const isNegativePreferenceAnswer = (answer: string): boolean =>
+  /^(?:\s)*(?:no|nope|nah|none|nothing|skip|no\s+preference|any|whatever|don't\s+care|dont\s+care|anything\s+is\s+fine|anything\s+except\b|anything\s+but\b|non|nein|nee|aucun|aucune|peu\s+importe|keine|kein|egal|ninguno|ninguna|sin\s+preferencia|cualquier|nessuno|nessuna|qualunque|não|nao|nenhum|nenhuma|qualquer|tanto\s+faz)/i.test(
+    answer.trim()
+  );
