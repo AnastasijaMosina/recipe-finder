@@ -234,3 +234,24 @@ Benefits:
 
 - State transitions are more predictable and easier to test/debug.
 - AI page UI now focuses on rendering and API calls, while conversation state logic is reusable and isolated.
+
+## Knowledge: Step 6 - Multilanguage Conversation Support
+
+What was added:
+
+- `app/services/ai/languageMediator.ts` to orchestrate language detection and translation through Azure AI Foundry (Phi-4 endpoint).
+- `app/api/ai/conversation/route.ts` now:
+  - detects whether the latest user message is English,
+  - translates non-English user history/latest message to English for internal extraction + slot-filling,
+  - translates assistant reply, follow-up questions, and possible answers back to the user's language.
+- README environment variable documentation for Foundry translation configuration.
+
+Why it was done:
+
+- Existing extraction logic is English-oriented; translating into English before extraction avoids duplicating keyword/rule sets per language.
+- Returning follow-up prompts in user language keeps conversational UX natural for non-English input.
+
+Benefits:
+
+- Internal AI chat processing remains consistent and deterministic in English.
+- Non-English users receive localized assistant messages while still benefiting from the same slot-filling and readiness logic.
