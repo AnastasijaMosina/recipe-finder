@@ -12,6 +12,7 @@ import {
   parseAiProviderResponse,
 } from '../../../services/ai/aiConversationPrompt';
 import { callAiProvider } from '../../../services/ai/aiProvider';
+import { callAiFallbackProvider } from '../../../services/ai/aiProviderFallback';
 import {
   OPTIONAL_PREFERENCE_SLOTS,
   type OptionalPreferenceSlot,
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
     // Build the language-aware prompt.
     const prompt = buildAiConversationPrompt({ conversationHistory, latestUserMessage, language });
 
-    // Call the real LLM provider.
+    // Call the real LLM provider; fallback if unavailable (firewall, no API key, etc).
     let rawProviderResponse: string;
     try {
       rawProviderResponse = await callAiProvider(prompt, {
@@ -123,8 +124,11 @@ export async function POST(request: NextRequest) {
         maxTokens: 500,
       });
     } catch (err) {
-      return errorResponse(
-        new ApiError(500, 'Failed to call AI provider. Please try again later.', String(err))
+      console.warn('LLM provider failed, using fallback:', String(err));
+      rawProviderResponse = callAiFallbackProvider(
+        conversationHistory,
+        latestUserMessage,
+        language
       );
     }
 
