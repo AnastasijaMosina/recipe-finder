@@ -167,7 +167,7 @@ Why:
 
 ---
 
-## 6. Add Voice Input (Speech-to-Text) - SKIPPED - will be implemented separately
+## 6. Add Voice Input (Speech-to-Text)
 
 Add:
 

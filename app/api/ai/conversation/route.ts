@@ -1,29 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import {
-  aiConversationStateSchema,
-  createInitialAiConversationState,
-} from '../../../domain/ai/conversationContract';
+import { aiConversationStateSchema } from '../../../domain/ai/conversationContract';
 import { aiProviderResponseSchema } from '../../../domain/ai/aiProviderResponseSchema';
-import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from '../../../domain/ai/conversationLanguage';
 import { ApiError, errorResponse } from '../../../utils/apiErrorHandler';
 import {
   buildAiConversationPrompt,
   parseAiProviderResponse,
 } from '../../../services/ai/aiConversationPrompt';
 import { callAiProvider } from '../../../services/ai/aiProvider';
-import { callAiFallbackProvider } from '../../../services/ai/aiProviderFallback';
 import {
-  OPTIONAL_PREFERENCE_SLOTS,
-  type OptionalPreferenceSlot,
-  detectAskedSlotFromAssistantMessage,
   detectMissingSlots,
-  generateFollowUpQuestions,
   generatePossibleAnswers,
-  isNegativePreferenceAnswer,
   isReadyToSearch,
 } from '../../../services/ai/slotFilling';
-import { extractFiltersFromConversation } from '../../../services/ai/ruleBasedFilterExtractor';
 
 const conversationMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
@@ -33,51 +22,7 @@ const conversationMessageSchema = z.object({
 const aiConversationRequestSchema = z.object({
   conversationHistory: z.array(conversationMessageSchema).default([]),
   latestUserMessage: z.string().trim().min(1, 'Latest user message is required.'),
-  language: z.enum(SUPPORTED_LANGUAGES).default(DEFAULT_LANGUAGE),
 });
-
-const deriveDeclinedOptionalSlots = (
-  conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>,
-  latestUserMessage: string
-): Set<OptionalPreferenceSlot> => {
-  const declinedSlots = new Set<OptionalPreferenceSlot>();
-
-  for (let index = 0; index < conversationHistory.length - 1; index += 1) {
-    const currentMessage = conversationHistory[index];
-    const nextMessage = conversationHistory[index + 1];
-
-    if (currentMessage.role !== 'assistant' || nextMessage.role !== 'user') {
-      continue;
-    }
-
-    const askedSlot = detectAskedSlotFromAssistantMessage(currentMessage.content);
-    if (!askedSlot || !OPTIONAL_PREFERENCE_SLOTS.includes(askedSlot)) {
-      continue;
-    }
-
-    if (isNegativePreferenceAnswer(nextMessage.content)) {
-      declinedSlots.add(askedSlot);
-    }
-  }
-
-  const lastAssistantMessage = [...conversationHistory]
-    .reverse()
-    .find((message) => message.role === 'assistant');
-
-  const latestAskedSlot = lastAssistantMessage
-    ? detectAskedSlotFromAssistantMessage(lastAssistantMessage.content)
-    : undefined;
-
-  if (
-    latestAskedSlot &&
-    OPTIONAL_PREFERENCE_SLOTS.includes(latestAskedSlot) &&
-    isNegativePreferenceAnswer(latestUserMessage)
-  ) {
-    declinedSlots.add(latestAskedSlot);
-  }
-
-  return declinedSlots;
-};
 
 const aiConversationRouteResponseSchema = z.object({
   assistantReply: z.string().trim().min(1),
@@ -109,73 +54,46 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { conversationHistory, latestUserMessage, language } = parsedRequest.data;
+    const { conversationHistory, latestUserMessage } = parsedRequest.data;
 
-    // Build the language-aware prompt.
-    const prompt = buildAiConversationPrompt({ conversationHistory, latestUserMessage, language });
+    const prompt = buildAiConversationPrompt({ conversationHistory, latestUserMessage });
 
-    // Call the real LLM provider; fallback if unavailable (firewall, no API key, etc).
     let rawProviderResponse: string;
     try {
       rawProviderResponse = await callAiProvider(prompt, {
-        apiKey: process.env.OPENAI_API_KEY || '',
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        apiKey: process.env.AZURE_AI_FOUNDRY_API_KEY,
+        endpoint: process.env.AZURE_AI_FOUNDRY_ENDPOINT,
+        model: process.env.AZURE_AI_FOUNDRY_MODEL,
         temperature: 0.7,
         maxTokens: 500,
       });
     } catch (err) {
       console.warn('LLM provider failed, using fallback:', String(err));
-      rawProviderResponse = callAiFallbackProvider(
-        conversationHistory,
-        latestUserMessage,
-        language
-      );
+      return NextResponse.json(FALLBACK_ASSISTANT_RESPONSE);
     }
 
+    console.log('Raw provider response:', rawProviderResponse);
     const parsedProviderResponse = parseAiProviderResponse(rawProviderResponse);
 
     if (!parsedProviderResponse.success) {
+      console.error('Failed to parse provider response:', parsedProviderResponse.error);
+      console.log('Response was:', rawProviderResponse);
       return NextResponse.json(FALLBACK_ASSISTANT_RESPONSE);
     }
 
     const normalizedProviderResponse = aiProviderResponseSchema.parse(parsedProviderResponse.data);
+    const extractedFilters = normalizedProviderResponse.extractedFilters ?? {};
 
-    const extractedFilters = extractFiltersFromConversation({
-      conversationHistory,
-      latestUserMessage,
-      baseFilters: normalizedProviderResponse.extractedFilters ?? {},
-    });
-    const declinedOptionalSlots = deriveDeclinedOptionalSlots(
-      conversationHistory,
-      latestUserMessage
-    );
-    const missingSlots = detectMissingSlots(extractedFilters, [...declinedOptionalSlots]);
+    const missingSlots = detectMissingSlots(extractedFilters);
     const readyToSearch = isReadyToSearch(extractedFilters);
-    const followUpQuestions = generateFollowUpQuestions(missingSlots);
     const possibleAnswers = generatePossibleAnswers(missingSlots);
 
-    const conversationState = aiConversationStateSchema.parse({
-      ...createInitialAiConversationState(),
-      intentText: latestUserMessage,
-      extractedFilters,
-      missingSlots,
-      followUpQuestions,
-      isReadyToSearch: readyToSearch,
-    });
-
-    const assistantReply =
-      conversationState.followUpQuestions.length > 0
-        ? `Got it. ${conversationState.followUpQuestions[0]}`
-        : 'Great, I have enough details. I can search recipes now.';
-
     const responsePayload: AiConversationRouteResponse = {
-      assistantReply,
-      followUpQuestions: conversationState.followUpQuestions,
+      assistantReply: normalizedProviderResponse.assistantReply,
+      followUpQuestions: normalizedProviderResponse.followUpQuestions,
       possibleAnswers,
-      isReadyToSearch: conversationState.isReadyToSearch,
-      ...(Object.keys(conversationState.extractedFilters).length > 0
-        ? { extractedFilters: conversationState.extractedFilters }
-        : {}),
+      isReadyToSearch: readyToSearch,
+      ...(Object.keys(extractedFilters).length > 0 ? { extractedFilters } : {}),
     };
 
     const validatedResponsePayload = aiConversationRouteResponseSchema.parse(responsePayload);

@@ -498,6 +498,92 @@ We added automated CI checks so every push/PR is validated the same way.
 - CI adds runtime cost to every PR.
 - E2E checks increase confidence but are slower than unit tests.
 
+---
+
+## 21. Multilingual AI Chat with Azure AI Foundry
+
+Native language support for user input and AI responses, with internal filter extraction in English.
+
+### Architecture
+
+- User types in **any language** (Russian, Spanish, Latvian, etc.)
+- LLM detects language and replies in **that same language**
+- Filter extraction happens in **English internally** (for API consistency)
+- Spoonacular API receives English-normalized filters regardless of user language
+
+### Key changes
+
+**Removed language infrastructure:**
+
+- `app/domain/ai/conversationLanguage.ts` — hardcoded 8-language enum (replaced by LLM auto-detection)
+- `app/services/ai/slotFillingI18n.ts` — hardcoded per-language question translations (LLM generates these)
+- `app/services/ai/aiProviderFallback.ts` — hardcoded per-language fallback strings (replaced by single fallback)
+- `app/services/ai/ruleBasedFilterExtractor.ts` — English-only keyword matching (LLM handles any language)
+
+**Updated services:**
+
+- `app/services/ai/aiProvider.ts` — supports both Azure AI Foundry and OpenAI with auto-detection
+- `app/services/ai/aiConversationPrompt.ts` — removed language parameter; LLM detects language + adds optimization for English input
+- `app/api/ai/conversation/route.ts` — simplified to rely on LLM output directly
+- `app/domain/ai/AiConversationContext.tsx` — removed language state management
+- `app/ai/page.tsx` — removed language from API request payload
+
+### Environment setup
+
+Create `.env.local` with your Azure AI Foundry credentials:
+
+**For Phi-4 deployment:**
+
+```bash
+AZURE_AI_FOUNDRY_ENDPOINT=https://<your-hub-name>.services.ai.azure.com/openai/v1
+AZURE_AI_FOUNDRY_API_KEY=<your-api-key>
+AZURE_AI_FOUNDRY_MODEL=Phi-4
+```
+
+**For GPT-4o-mini deployment:**
+
+```bash
+AZURE_AI_FOUNDRY_ENDPOINT=https://<your-hub-name>.openai.azure.com/openai/deployments/gpt-4o-mini
+AZURE_AI_FOUNDRY_API_KEY=<your-api-key>
+AZURE_AI_FOUNDRY_MODEL=gpt-4o-mini
+```
+
+**Fallback to OpenAI (optional):**
+
+```bash
+OPENAI_API_KEY=sk-...
+OPENAI_MODEL=gpt-4o-mini
+```
+
+The code auto-detects endpoint format:
+
+- If endpoint contains `/deployments/` → GPT-4o-mini format with `api-version` query param
+- If endpoint contains `/openai/v1` → Phi-4 format with simple `/chat/completions` path
+
+Both use Azure `api-key` header authentication.
+
+### JSON parsing robustness
+
+Added regex-based JSON extraction in `parseAiProviderResponse()` to handle cases where the model wraps JSON in markdown code blocks or explanation text. Falls back gracefully if parsing fails.
+
+### Performance optimization
+
+For English-language input, the prompt skips translation instructions, reducing LLM processing and latency. Language detection uses ASCII character ratio heuristic (>80% ASCII → likely English/Latin-based).
+
+### Benefits
+
+- ✅ Single LLM call handles detection + translation + extraction + response generation
+- ✅ Cheaper than multi-step translation API approach
+- ✅ No hardcoded language lists; works with any language the model understands
+- ✅ Seamless user experience: type in your language, get results in your language
+- ✅ Internal logic remains English-normalized for consistent API integration
+
+### Tradeoffs
+
+- Relies on LLM language detection accuracy (generally >95% for distinct scripts)
+- Slightly higher token cost per request (includes system instructions + examples)
+- Requires valid Azure AI Foundry or OpenAI API key with quota
+
 ### Practical guideline
 
 - Keep CI focused on high-value gates: lint, types, tests.

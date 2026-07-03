@@ -2,11 +2,6 @@
 
 import { createContext, useContext, useMemo, useReducer } from 'react';
 import type { SearchQueryParams } from '../search/searchFiltersSchema';
-import {
-  DEFAULT_LANGUAGE,
-  detectSupportedLanguage,
-  type SupportedLanguage,
-} from './conversationLanguage';
 
 export type ConversationMessage = {
   role: 'user' | 'assistant';
@@ -28,12 +23,10 @@ type AiConversationState = {
   readyToSearch: boolean;
   errorMessage: string | null;
   isSubmitting: boolean;
-  language: SupportedLanguage;
 };
 
 type AiConversationAction =
   | { type: 'set_input'; payload: string }
-  | { type: 'set_language'; payload: SupportedLanguage }
   | { type: 'start_submit'; payload: { userMessage: string } }
   | { type: 'apply_assistant_response'; payload: AiConversationTurnResult }
   | { type: 'set_error'; payload: string }
@@ -53,7 +46,6 @@ const initialState: AiConversationState = {
   readyToSearch: false,
   errorMessage: null,
   isSubmitting: false,
-  language: DEFAULT_LANGUAGE,
 };
 
 const aiConversationReducer = (
@@ -65,12 +57,6 @@ const aiConversationReducer = (
       return {
         ...state,
         input: action.payload,
-      };
-
-    case 'set_language':
-      return {
-        ...state,
-        language: action.payload,
       };
 
     case 'start_submit':
@@ -115,7 +101,6 @@ const aiConversationReducer = (
 type AiConversationContextType = {
   state: AiConversationState;
   setInput: (value: string) => void;
-  setLanguage: (language: SupportedLanguage) => void;
   startSubmit: (userMessage: string) => void;
   applyAssistantResponse: (response: AiConversationTurnResult) => void;
   setError: (message: string) => void;
@@ -125,23 +110,12 @@ type AiConversationContextType = {
 const AiConversationContext = createContext<AiConversationContextType | undefined>(undefined);
 
 export function AiConversationProvider({ children }: { children: React.ReactNode }) {
-  const [state, dispatch] = useReducer(
-    aiConversationReducer,
-    undefined,
-    (): AiConversationState => ({
-      ...initialState,
-      language:
-        typeof navigator !== 'undefined'
-          ? detectSupportedLanguage(navigator.language)
-          : DEFAULT_LANGUAGE,
-    })
-  );
+  const [state, dispatch] = useReducer(aiConversationReducer, initialState);
 
   const value = useMemo<AiConversationContextType>(
     () => ({
       state,
       setInput: (input) => dispatch({ type: 'set_input', payload: input }),
-      setLanguage: (language) => dispatch({ type: 'set_language', payload: language }),
       startSubmit: (userMessage) => dispatch({ type: 'start_submit', payload: { userMessage } }),
       applyAssistantResponse: (response) =>
         dispatch({ type: 'apply_assistant_response', payload: response }),
