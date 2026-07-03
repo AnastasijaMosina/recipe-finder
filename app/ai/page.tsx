@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useMemo } from 'react';
+import { FormEvent, useEffect, useMemo, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import ErrorMessage from '../components/ErrorMessage';
@@ -27,6 +27,7 @@ const FILTER_FIELDS: Array<{ key: keyof SearchQueryParams; label: string }> = [
 
 const AiPage = () => {
   const router = useRouter();
+  const chatThreadRef = useRef<HTMLElement | null>(null);
   const { state, setInput, startSubmit, applyAssistantResponse, setError, finishSubmit } =
     useAiConversation();
 
@@ -56,6 +57,19 @@ const AiPage = () => {
     () => FILTER_FIELDS.filter(({ key }) => Boolean(filters[key])),
     [filters]
   );
+
+  useEffect(() => {
+    const threadElement = chatThreadRef.current;
+
+    if (!threadElement) {
+      return;
+    }
+
+    threadElement.scrollTo({
+      top: threadElement.scrollHeight,
+      behavior: 'smooth',
+    });
+  }, [messages.length]);
 
   const sendMessage = async (userMessage: string) => {
     if (!userMessage.trim() || isSubmitting) {
@@ -120,7 +134,7 @@ const AiPage = () => {
           Describe your craving, then refine details through follow-up prompts.
         </p>
 
-        <section className="ai-chat-thread" aria-live="polite">
+        <section ref={chatThreadRef} className="ai-chat-thread" aria-live="polite">
           {messages.map((message, index) => (
             <div
               key={`${message.role}-${index}`}

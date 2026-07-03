@@ -591,8 +591,9 @@
 }
 
 .ai-chat-thread {
-  max-height: 360px;
+  height: 360px;
   overflow-y: auto;
+  scroll-behavior: smooth;
   border: 1px solid #d1d5db;
   border-radius: 0.5rem;
   padding: 1rem;
