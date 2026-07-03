@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useFavorites } from '../hooks/useFavorites';
+import { useFavorites } from '../domain/favorites/FavoritesContext';
 import RecipeCard from '../components/RecipeCard';
-import '../css/recipeSearch.css';
+import RecipeCardSkeleton from '../components/RecipeCardSkeleton';
 
 export default function FavoritesPage() {
   const router = useRouter();
@@ -13,7 +13,12 @@ export default function FavoritesPage() {
     return (
       <main className="recipe-main">
         <div className="search-container">
-          <p>Loading favorites...</p>
+          <h1 className="search-title search-results-title-skeleton skeleton-block" />
+          <div className="search-results" aria-label="Loading favorites" aria-live="polite">
+            <div className="search-results-grid">
+              <RecipeCardSkeleton count={6} />
+            </div>
+          </div>
         </div>
       </main>
     );
@@ -23,7 +28,12 @@ export default function FavoritesPage() {
     <main className="recipe-main">
       <div className="search-container">
         <div style={{ marginBottom: '2rem' }}>
-          <button onClick={() => router.push('/')} className="btn btn-primary btn-small">
+          <button
+            type="button"
+            onClick={() => router.push('/')}
+            className="btn btn-primary btn-small"
+            aria-label="Go back to the home page"
+          >
             ← Back to Home
           </button>
         </div>

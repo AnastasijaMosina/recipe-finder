@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { memo } from 'react';
 import { Recipe } from '../services/spoonacularApi';
 import FavoriteButton from './FavoriteButton';
 
@@ -7,7 +8,7 @@ interface RecipeCardProps {
   variant?: 'default' | 'featured';
 }
 
-export default function RecipeCard({ recipe, variant = 'default' }: RecipeCardProps) {
+function RecipeCard({ recipe, variant = 'default' }: RecipeCardProps) {
   if (variant === 'featured') {
     return (
       <div className="recipe-card-featured">
@@ -21,6 +22,8 @@ export default function RecipeCard({ recipe, variant = 'default' }: RecipeCardPr
                 className="recipe-card-featured-image"
                 width={400}
                 height={300}
+                sizes="(max-width: 768px) 100vw, 400px"
+                priority={variant === 'featured'}
               />
             </div>
           )}
@@ -89,6 +92,7 @@ export default function RecipeCard({ recipe, variant = 'default' }: RecipeCardPr
           className="recipe-card-image"
           width={400}
           height={300}
+          sizes="(max-width: 768px) 100vw, 400px"
         />
       )}
       <div className="recipe-card-content">
@@ -111,3 +115,5 @@ export default function RecipeCard({ recipe, variant = 'default' }: RecipeCardPr
     </div>
   );
 }
+
+export default memo(RecipeCard);

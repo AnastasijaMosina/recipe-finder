@@ -1,49 +1,105 @@
+'use client';
+
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { CUISINES, MEAL_TYPES } from '../constants/cuisines';
+import {
+  recipeSearchFormSchema,
+  type RecipeSearchFormValues,
+  type RecipeSearchFilters,
+} from '../domain/search/searchFiltersSchema';
+import { loadLastSearchFilters, saveLastSearchFilters } from '../utils/searchStorage';
+import { mapFiltersToFormValues, mapFormValuesToFilters } from '../services/searchMappers';
 
 interface RecipeSearchFormProps {
-  cuisineType: string;
-  setCuisineType: (value: string) => void;
-  includeIngredients: string;
-  setIncludeIngredients: (value: string) => void;
-  excludeIngredients: string;
-  setExcludeIngredients: (value: string) => void;
-  mealType: string;
-  setMealType: (value: string) => void;
-  maxReadyTime: string;
-  setMaxReadyTime: (value: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (filters: RecipeSearchFilters) => void;
   isSearching: boolean;
+  defaultValues?: Partial<RecipeSearchFormValues>;
 }
 
 export default function RecipeSearchForm({
-  cuisineType,
-  setCuisineType,
-  includeIngredients,
-  setIncludeIngredients,
-  excludeIngredients,
-  setExcludeIngredients,
-  mealType,
-  setMealType,
-  maxReadyTime,
-  setMaxReadyTime,
   onSubmit,
   isSearching,
+  defaultValues,
 }: RecipeSearchFormProps) {
+  const savedFilters = loadLastSearchFilters();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<RecipeSearchFormValues>({
+    resolver: zodResolver(recipeSearchFormSchema),
+    defaultValues: mapFiltersToFormValues({
+      cuisine: defaultValues?.cuisineType,
+      includeIngredients: defaultValues?.includeIngredients,
+      excludeIngredients: defaultValues?.excludeIngredients,
+      type: defaultValues?.mealType,
+      maxReadyTime: defaultValues?.maxReadyTime,
+    }),
+  });
+
+  useEffect(() => {
+    reset({
+      cuisineType: defaultValues?.cuisineType ?? '',
+      includeIngredients: defaultValues?.includeIngredients ?? '',
+      excludeIngredients: defaultValues?.excludeIngredients ?? '',
+      mealType: defaultValues?.mealType ?? '',
+      maxReadyTime: defaultValues?.maxReadyTime ?? '',
+    });
+  }, [defaultValues, reset]);
+
+  const onFormSubmit = (values: RecipeSearchFormValues) => {
+    const filters = mapFormValuesToFilters(values);
+
+    saveLastSearchFilters(filters);
+    onSubmit(filters);
+  };
+
+  const handleLoadLastSearch = () => {
+    if (!savedFilters) {
+      return;
+    }
+
+    reset(mapFiltersToFormValues(savedFilters));
+  };
+
   return (
     <div className="search-container">
       <h2 className="search-title">Search for a Recipe</h2>
 
-      <form onSubmit={onSubmit} className="search-form">
+      <div className="search-helper-actions">
+        <button
+          type="button"
+          className="btn btn-secondary btn-small"
+          onClick={handleLoadLastSearch}
+          disabled={!savedFilters}
+          aria-describedby="load-last-search-help"
+        >
+          Load last search
+        </button>
+        <span id="load-last-search-help" className="sr-only">
+          {savedFilters
+            ? 'Restores your previously saved search filters into the form.'
+            : 'No previously saved search filters are available.'}
+        </span>
+      </div>
+
+      <form onSubmit={handleSubmit(onFormSubmit)} className="search-form" aria-busy={isSearching}>
         {/* Cuisine Type */}
         <div className="form-field">
           <label htmlFor="cuisineType" className="form-label">
-            Cuisine Type
+            Cuisine Type *
           </label>
           <select
             id="cuisineType"
-            value={cuisineType}
-            onChange={(e) => setCuisineType(e.target.value)}
+            {...register('cuisineType')}
             className="form-select"
+            aria-invalid={Boolean(errors.cuisineType)}
+            aria-describedby={errors.cuisineType ? 'cuisineType-error' : undefined}
+            required
           >
             <option value="">Select cuisine type...</option>
             {CUISINES.map((cuisine) => (
@@ -52,6 +108,11 @@ export default function RecipeSearchForm({
               </option>
             ))}
           </select>
+          {errors.cuisineType && (
+            <p id="cuisineType-error" className="form-error-message" role="alert">
+              {errors.cuisineType.message}
+            </p>
+          )}
         </div>
 
         {/* Include Ingredients */}
@@ -62,12 +123,14 @@ export default function RecipeSearchForm({
           <input
             type="text"
             id="includeIngredients"
-            value={includeIngredients}
-            onChange={(e) => setIncludeIngredients(e.target.value)}
+            {...register('includeIngredients')}
             placeholder="e.g., chicken, tomatoes, garlic"
             className="form-input"
+            aria-describedby="includeIngredients-help"
           />
-          <p className="form-helper-text">Separate multiple ingredients with commas</p>
+          <p id="includeIngredients-help" className="form-helper-text">
+            Separate multiple ingredients with commas
+          </p>
         </div>
 
         {/* Exclude Ingredients */}
@@ -78,24 +141,28 @@ export default function RecipeSearchForm({
           <input
             type="text"
             id="excludeIngredients"
-            value={excludeIngredients}
-            onChange={(e) => setExcludeIngredients(e.target.value)}
+            {...register('excludeIngredients')}
             placeholder="e.g., nuts, dairy, shellfish"
             className="form-input"
+            aria-describedby="excludeIngredients-help"
           />
-          <p className="form-helper-text">Separate multiple ingredients with commas</p>
+          <p id="excludeIngredients-help" className="form-helper-text">
+            Separate multiple ingredients with commas
+          </p>
         </div>
 
         {/* Meal Type */}
         <div className="form-field">
           <label htmlFor="mealType" className="form-label">
-            Meal Type
+            Meal Type *
           </label>
           <select
             id="mealType"
-            value={mealType}
-            onChange={(e) => setMealType(e.target.value)}
+            {...register('mealType')}
             className="form-select"
+            aria-invalid={Boolean(errors.mealType)}
+            aria-describedby={errors.mealType ? 'mealType-error' : undefined}
+            required
           >
             <option value="">Select meal type...</option>
             {MEAL_TYPES.map((type) => (
@@ -104,6 +171,11 @@ export default function RecipeSearchForm({
               </option>
             ))}
           </select>
+          {errors.mealType && (
+            <p id="mealType-error" className="form-error-message" role="alert">
+              {errors.mealType.message}
+            </p>
+          )}
         </div>
 
         {/* Max Ready Time */}
@@ -114,14 +186,28 @@ export default function RecipeSearchForm({
           <input
             type="number"
             id="maxReadyTime"
-            value={maxReadyTime}
-            onChange={(e) => setMaxReadyTime(e.target.value)}
+            {...register('maxReadyTime')}
             placeholder="e.g., 30"
             min="1"
             className="form-input"
+            aria-invalid={Boolean(errors.maxReadyTime)}
+            aria-describedby={errors.maxReadyTime ? 'maxReadyTime-error' : 'maxReadyTime-help'}
+            inputMode="numeric"
           />
-          <p className="form-helper-text">Maximum time in minutes to prepare the recipe</p>
+          {errors.maxReadyTime ? (
+            <p id="maxReadyTime-error" className="form-error-message" role="alert">
+              {errors.maxReadyTime.message}
+            </p>
+          ) : (
+            <p id="maxReadyTime-help" className="form-helper-text">
+              Maximum time in minutes to prepare the recipe
+            </p>
+          )}
         </div>
+
+        <p className="sr-only" aria-live="polite">
+          {isSearching ? 'Searching for recipes.' : ''}
+        </p>
 
         {/* Search Button */}
         <div className="search-btn-container">
@@ -129,6 +215,7 @@ export default function RecipeSearchForm({
             type="submit"
             className="btn btn-primary btn-medium btn-full-width"
             disabled={isSearching}
+            aria-label={isSearching ? 'Searching for recipes' : 'Search recipes'}
           >
             {isSearching ? '⏳ Searching...' : '🔍 Search Recipes'}
           </button>
