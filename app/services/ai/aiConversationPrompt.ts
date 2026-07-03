@@ -1,4 +1,7 @@
-import { type AiProviderResponse, aiProviderResponseSchema } from '../../domain/ai/aiProviderResponseSchema';
+import {
+  type AiProviderResponse,
+  aiProviderResponseSchema,
+} from '../../domain/ai/aiProviderResponseSchema';
 import type { SupportedLanguage } from '../../domain/ai/conversationLanguage';
 
 type ConversationMessage = {
@@ -37,7 +40,7 @@ export const buildAiConversationPrompt = ({
     'Return STRICT JSON only. Do not include markdown fences or extra text.',
     'Use this exact JSON shape:',
     JSON.stringify(RESPONSE_SHAPE_EXAMPLE),
-    'If data is missing, ask concise follow-up questions in the user\'s language and set isReadyToSearch=false.',
+    "If data is missing, ask concise follow-up questions in the user's language and set isReadyToSearch=false.",
     `Conversation history: ${serializedHistory}`,
     `Latest user message: ${latestUserMessage}`,
   ].join('\n');
@@ -51,5 +54,3 @@ export const parseAiProviderResponse = (rawText: string) => {
     return aiProviderResponseSchema.safeParse(undefined);
   }
 };
-
-

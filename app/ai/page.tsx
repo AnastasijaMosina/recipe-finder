@@ -30,8 +30,16 @@ const AiPage = () => {
   const { state, setInput, startSubmit, applyAssistantResponse, setError, finishSubmit } =
     useAiConversation();
 
-  const { messages, input, possibleAnswers, filters, readyToSearch, errorMessage, isSubmitting } =
-    state;
+  const {
+    messages,
+    input,
+    possibleAnswers,
+    filters,
+    readyToSearch,
+    errorMessage,
+    isSubmitting,
+    language,
+  } = state;
 
   const normalizedSearchFilters = useMemo(() => mapAiFiltersToSearchParams(filters), [filters]);
   const hasSearchFilters = Object.values(normalizedSearchFilters).some(Boolean);
@@ -76,6 +84,7 @@ const AiPage = () => {
         body: JSON.stringify({
           conversationHistory: history,
           latestUserMessage: trimmedMessage,
+          language,
         }),
       });
 

@@ -5,16 +5,21 @@ import {
   createInitialAiConversationState,
 } from '../../../domain/ai/conversationContract';
 import { aiProviderResponseSchema } from '../../../domain/ai/aiProviderResponseSchema';
+import { DEFAULT_LANGUAGE, SUPPORTED_LANGUAGES } from '../../../domain/ai/conversationLanguage';
 import { ApiError, errorResponse } from '../../../utils/apiErrorHandler';
 import {
   buildAiConversationPrompt,
-  createMockProviderJsonResponse,
   parseAiProviderResponse,
 } from '../../../services/ai/aiConversationPrompt';
+import { callAiProvider } from '../../../services/ai/aiProvider';
 import {
+  OPTIONAL_PREFERENCE_SLOTS,
+  type OptionalPreferenceSlot,
+  detectAskedSlotFromAssistantMessage,
   detectMissingSlots,
   generateFollowUpQuestions,
   generatePossibleAnswers,
+  isNegativePreferenceAnswer,
   isReadyToSearch,
 } from '../../../services/ai/slotFilling';
 import { extractFiltersFromConversation } from '../../../services/ai/ruleBasedFilterExtractor';
@@ -27,7 +32,51 @@ const conversationMessageSchema = z.object({
 const aiConversationRequestSchema = z.object({
   conversationHistory: z.array(conversationMessageSchema).default([]),
   latestUserMessage: z.string().trim().min(1, 'Latest user message is required.'),
+  language: z.enum(SUPPORTED_LANGUAGES).default(DEFAULT_LANGUAGE),
 });
+
+const deriveDeclinedOptionalSlots = (
+  conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>,
+  latestUserMessage: string
+): Set<OptionalPreferenceSlot> => {
+  const declinedSlots = new Set<OptionalPreferenceSlot>();
+
+  for (let index = 0; index < conversationHistory.length - 1; index += 1) {
+    const currentMessage = conversationHistory[index];
+    const nextMessage = conversationHistory[index + 1];
+
+    if (currentMessage.role !== 'assistant' || nextMessage.role !== 'user') {
+      continue;
+    }
+
+    const askedSlot = detectAskedSlotFromAssistantMessage(currentMessage.content);
+    if (!askedSlot || !OPTIONAL_PREFERENCE_SLOTS.includes(askedSlot)) {
+      continue;
+    }
+
+    if (isNegativePreferenceAnswer(nextMessage.content)) {
+      declinedSlots.add(askedSlot);
+    }
+  }
+
+  const lastAssistantMessage = [...conversationHistory]
+    .reverse()
+    .find((message) => message.role === 'assistant');
+
+  const latestAskedSlot = lastAssistantMessage
+    ? detectAskedSlotFromAssistantMessage(lastAssistantMessage.content)
+    : undefined;
+
+  if (
+    latestAskedSlot &&
+    OPTIONAL_PREFERENCE_SLOTS.includes(latestAskedSlot) &&
+    isNegativePreferenceAnswer(latestUserMessage)
+  ) {
+    declinedSlots.add(latestAskedSlot);
+  }
+
+  return declinedSlots;
+};
 
 const aiConversationRouteResponseSchema = z.object({
   assistantReply: z.string().trim().min(1),
@@ -59,14 +108,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { conversationHistory, latestUserMessage } = parsedRequest.data;
+    const { conversationHistory, latestUserMessage, language } = parsedRequest.data;
 
-    // Step 3 skeleton: build strict JSON prompt now, and swap the mock provider later.
-    const prompt = buildAiConversationPrompt({ conversationHistory, latestUserMessage });
-    void prompt;
+    // Build the language-aware prompt.
+    const prompt = buildAiConversationPrompt({ conversationHistory, latestUserMessage, language });
 
-    // Placeholder model call; replaced by real provider call in the integration step.
-    const rawProviderResponse = createMockProviderJsonResponse(latestUserMessage);
+    // Call the real LLM provider.
+    let rawProviderResponse: string;
+    try {
+      rawProviderResponse = await callAiProvider(prompt, {
+        apiKey: process.env.OPENAI_API_KEY || '',
+        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
+        temperature: 0.7,
+        maxTokens: 500,
+      });
+    } catch (err) {
+      return errorResponse(
+        new ApiError(500, 'Failed to call AI provider. Please try again later.', String(err))
+      );
+    }
+
     const parsedProviderResponse = parseAiProviderResponse(rawProviderResponse);
 
     if (!parsedProviderResponse.success) {
@@ -80,7 +141,11 @@ export async function POST(request: NextRequest) {
       latestUserMessage,
       baseFilters: normalizedProviderResponse.extractedFilters ?? {},
     });
-    const missingSlots = detectMissingSlots(extractedFilters);
+    const declinedOptionalSlots = deriveDeclinedOptionalSlots(
+      conversationHistory,
+      latestUserMessage
+    );
+    const missingSlots = detectMissingSlots(extractedFilters, [...declinedOptionalSlots]);
     const readyToSearch = isReadyToSearch(extractedFilters);
     const followUpQuestions = generateFollowUpQuestions(missingSlots);
     const possibleAnswers = generatePossibleAnswers(missingSlots);
