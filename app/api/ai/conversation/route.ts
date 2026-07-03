@@ -18,6 +18,7 @@ import {
   isReadyToSearch,
 } from '../../../services/ai/slotFilling';
 import { extractFiltersFromConversation } from '../../../services/ai/ruleBasedFilterExtractor';
+import { resolveConversationLanguage } from '../../../services/ai/languageMediator';
 
 const conversationMessageSchema = z.object({
   role: z.enum(['user', 'assistant']),
@@ -61,24 +62,33 @@ export async function POST(request: NextRequest) {
 
     const { conversationHistory, latestUserMessage } = parsedRequest.data;
 
+    const languageContext = await resolveConversationLanguage({
+      conversationHistory,
+      latestUserMessage,
+    });
+
+    const processingConversationHistory = languageContext.conversationHistoryForProcessing;
+    const processingLatestUserMessage = languageContext.latestUserMessageForProcessing;
+
     // Step 3 skeleton: build strict JSON prompt now, and swap the mock provider later.
-    const prompt = buildAiConversationPrompt({ conversationHistory, latestUserMessage });
+    const prompt = buildAiConversationPrompt({
+      conversationHistory: processingConversationHistory,
+      latestUserMessage: processingLatestUserMessage,
+    });
     void prompt;
 
     // Placeholder model call; replaced by real provider call in the integration step.
-    const rawProviderResponse = createMockProviderJsonResponse(latestUserMessage);
+    const rawProviderResponse = createMockProviderJsonResponse(processingLatestUserMessage);
     const parsedProviderResponse = parseAiProviderResponse(rawProviderResponse);
 
-    if (!parsedProviderResponse.success) {
-      return NextResponse.json(FALLBACK_ASSISTANT_RESPONSE);
-    }
-
-    const normalizedProviderResponse = aiProviderResponseSchema.parse(parsedProviderResponse.data);
+    const normalizedProviderResponse = parsedProviderResponse.success
+      ? aiProviderResponseSchema.parse(parsedProviderResponse.data)
+      : null;
 
     const extractedFilters = extractFiltersFromConversation({
-      conversationHistory,
-      latestUserMessage,
-      baseFilters: normalizedProviderResponse.extractedFilters ?? {},
+      conversationHistory: processingConversationHistory,
+      latestUserMessage: processingLatestUserMessage,
+      baseFilters: normalizedProviderResponse?.extractedFilters ?? {},
     });
     const missingSlots = detectMissingSlots(extractedFilters);
     const readyToSearch = isReadyToSearch(extractedFilters);
@@ -87,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     const conversationState = aiConversationStateSchema.parse({
       ...createInitialAiConversationState(),
-      intentText: latestUserMessage,
+      intentText: processingLatestUserMessage,
       extractedFilters,
       missingSlots,
       followUpQuestions,
@@ -99,10 +109,48 @@ export async function POST(request: NextRequest) {
         ? `Got it. ${conversationState.followUpQuestions[0]}`
         : 'Great, I have enough details. I can search recipes now.';
 
-    const responsePayload: AiConversationRouteResponse = {
+    const localizableTexts = [
       assistantReply,
-      followUpQuestions: conversationState.followUpQuestions,
-      possibleAnswers,
+      ...conversationState.followUpQuestions,
+      ...possibleAnswers,
+    ];
+    const localizedTexts = await languageContext.localizeTextsForUser(localizableTexts);
+
+    const localizedAssistantReply = localizedTexts[0] ?? assistantReply;
+    const localizedFollowUpQuestions = localizedTexts.slice(
+      1,
+      1 + conversationState.followUpQuestions.length
+    );
+    const localizedPossibleAnswers = localizedTexts.slice(
+      1 + conversationState.followUpQuestions.length
+    );
+
+    const localizedFallbackTexts = await languageContext.localizeTextsForUser([
+      FALLBACK_ASSISTANT_RESPONSE.assistantReply,
+      ...FALLBACK_ASSISTANT_RESPONSE.followUpQuestions,
+      ...FALLBACK_ASSISTANT_RESPONSE.possibleAnswers,
+    ]);
+
+    const localizedFallbackAssistantReply =
+      localizedFallbackTexts[0] ?? FALLBACK_ASSISTANT_RESPONSE.assistantReply;
+    const localizedFallbackFollowUpQuestions = localizedFallbackTexts.slice(
+      1,
+      1 + FALLBACK_ASSISTANT_RESPONSE.followUpQuestions.length
+    );
+    const localizedFallbackPossibleAnswers = localizedFallbackTexts.slice(
+      1 + FALLBACK_ASSISTANT_RESPONSE.followUpQuestions.length
+    );
+
+    const responsePayload: AiConversationRouteResponse = {
+      assistantReply: parsedProviderResponse.success
+        ? localizedAssistantReply
+        : localizedFallbackAssistantReply,
+      followUpQuestions: parsedProviderResponse.success
+        ? localizedFollowUpQuestions
+        : localizedFallbackFollowUpQuestions,
+      possibleAnswers: parsedProviderResponse.success
+        ? localizedPossibleAnswers
+        : localizedFallbackPossibleAnswers,
       isReadyToSearch: conversationState.isReadyToSearch,
       ...(Object.keys(conversationState.extractedFilters).length > 0
         ? { extractedFilters: conversationState.extractedFilters }
