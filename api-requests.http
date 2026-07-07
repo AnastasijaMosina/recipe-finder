@@ -1,0 +1,9 @@
+### Spoonacular API Request
+### Replace YOUR_API_KEY with your actual Spoonacular API key
+
+@apiKey = YOUR_API_KEY
+@baseUrl = https://api.spoonacular.com
+
+### Search Recipes
+GET {{baseUrl}}/recipes/complexSearch?apiKey={{apiKey}}&query=pasta&number=10&addRecipeInformation=true
+
