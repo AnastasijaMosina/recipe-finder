@@ -1,5 +1,4 @@
 import RecipeCardSkeleton from '../components/RecipeCardSkeleton';
-import SearchFormSkeleton from '../components/SearchFormSkeleton';
 
 export default function Loading() {
   return (
@@ -7,7 +6,20 @@ export default function Loading() {
       <div className="search-container">
         <h1 className="search-title search-results-title-skeleton skeleton-block" />
 
-        <SearchFormSkeleton />
+        <div className="search-form" aria-hidden="true">
+          <div className="form-field">
+            <div className="recipe-card-skeleton-line recipe-card-skeleton-line-short skeleton-block" />
+            <div className="form-input skeleton-block skeleton-input" />
+          </div>
+          <div className="form-field">
+            <div className="recipe-card-skeleton-line recipe-card-skeleton-line-short skeleton-block" />
+            <div className="form-input skeleton-block skeleton-input" />
+          </div>
+          <div className="form-field">
+            <div className="recipe-card-skeleton-line recipe-card-skeleton-line-short skeleton-block" />
+            <div className="form-input skeleton-block skeleton-input" />
+          </div>
+        </div>
 
         <section className="search-results" aria-hidden="true">
           <h2 className="search-results-title search-results-title-skeleton skeleton-block" />
