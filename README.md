@@ -196,11 +196,11 @@ recipe-finder/
 
 AI multilingual support (optional, for AI chat translation flow):
 
-| Variable                  | Description                                                                    | Required |
-| ------------------------- | ------------------------------------------------------------------------------ | -------- |
+| Variable                    | Description                                                                                          | Required |
+| --------------------------- | ---------------------------------------------------------------------------------------------------- | -------- |
 | `AZURE_TRANSLATOR_ENDPOINT` | Azure Translator Text endpoint base URL, for example `https://api.cognitive.microsofttranslator.com` | Optional |
-| `AZURE_TRANSLATOR_KEY`      | API key for Azure Translator Text                                             | Optional |
-| `AZURE_TRANSLATOR_REGION`   | Azure resource region header required by many Translator resources            | Optional |
+| `AZURE_TRANSLATOR_KEY`      | API key for Azure Translator Text                                                                    | Optional |
+| `AZURE_TRANSLATOR_REGION`   | Azure resource region header required by many Translator resources                                   | Optional |
 
 **Note:** Keep these values server-side only (no `NEXT_PUBLIC_` prefix).
 
