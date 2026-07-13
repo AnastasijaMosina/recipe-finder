@@ -152,9 +152,7 @@ export async function POST(request: NextRequest) {
         ? localizedPossibleAnswers
         : localizedFallbackPossibleAnswers,
       isReadyToSearch: conversationState.isReadyToSearch,
-      ...(Object.keys(conversationState.extractedFilters).length > 0
-        ? { extractedFilters: conversationState.extractedFilters }
-        : {}),
+      extractedFilters: conversationState.extractedFilters,
     };
 
     const validatedResponsePayload = aiConversationRouteResponseSchema.parse(responsePayload);
