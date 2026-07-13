@@ -239,12 +239,12 @@ Benefits:
 
 What was added:
 
-- `app/services/ai/languageMediator.ts` to orchestrate language detection and translation through Azure AI Foundry (Phi-4 endpoint).
+- `app/services/ai/languageMediator.ts` to orchestrate language detection and translation through Azure Translator Text.
 - `app/api/ai/conversation/route.ts` now:
   - detects whether the latest user message is English,
   - translates non-English user history/latest message to English for internal extraction + slot-filling,
   - translates assistant reply, follow-up questions, and possible answers back to the user's language.
-- README environment variable documentation for Foundry translation configuration.
+- README environment variable documentation for Azure Translator Text configuration.
 
 Why it was done:
 

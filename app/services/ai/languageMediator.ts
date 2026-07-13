@@ -18,103 +18,58 @@ type ResolvedConversationLanguage = {
   localizeTextsForUser: (texts: string[]) => Promise<string[]>;
 };
 
-type FoundryMessage = {
-  role: 'system' | 'user' | 'assistant';
-  content: string;
-};
+const translatorDetectResponseSchema = z.array(
+  z.object({
+    language: z.string().trim().min(2),
+    score: z.number().optional(),
+    isTranslationSupported: z.boolean().optional(),
+  })
+);
 
-const languageDetectionSchema = z.object({
-  languageCode: z.string().trim().min(2),
-  isEnglish: z.boolean(),
-});
+const translatorTranslateResponseSchema = z.array(
+  z.object({
+    translations: z.array(
+      z.object({
+        text: z.string(),
+        to: z.string(),
+      })
+    ),
+  })
+);
 
-const translationBatchSchema = z.object({
-  translatedTexts: z.array(z.string()),
-});
+const TRANSLATOR_ENDPOINT = process.env.AZURE_TRANSLATOR_ENDPOINT;
+const TRANSLATOR_KEY = process.env.AZURE_TRANSLATOR_KEY;
+const TRANSLATOR_REGION = process.env.AZURE_TRANSLATOR_REGION;
 
-const FOUNDRY_ENDPOINT = process.env.AZURE_FOUNDRY_PHI4_CHAT_COMPLETIONS_URL;
-const FOUNDRY_API_KEY = process.env.AZURE_FOUNDRY_API_KEY;
-const FOUNDRY_MODEL = process.env.AZURE_FOUNDRY_MODEL;
-const FOUNDRY_API_VERSION = process.env.AZURE_FOUNDRY_API_VERSION;
-const FOUNDRY_AUTH_SCHEME = process.env.AZURE_FOUNDRY_AUTH_SCHEME?.toLowerCase();
+const hasTranslatorConfig = (): boolean => Boolean(TRANSLATOR_ENDPOINT && TRANSLATOR_KEY);
 
-const hasFoundryConfig = (): boolean => Boolean(FOUNDRY_ENDPOINT && FOUNDRY_API_KEY);
-
-const getFoundryHeaders = (): HeadersInit => {
-  if (!FOUNDRY_API_KEY) {
-    return {
-      'Content-Type': 'application/json',
-    };
-  }
-
-  if (FOUNDRY_AUTH_SCHEME === 'bearer') {
-    return {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${FOUNDRY_API_KEY}`,
-    };
-  }
-
-  return {
+const getTranslatorHeaders = (): HeadersInit => {
+  const headers: HeadersInit = {
     'Content-Type': 'application/json',
-    'api-key': FOUNDRY_API_KEY,
+    'Ocp-Apim-Subscription-Key': TRANSLATOR_KEY ?? '',
   };
+
+  if (TRANSLATOR_REGION) {
+    headers['Ocp-Apim-Subscription-Region'] = TRANSLATOR_REGION;
+  }
+
+  return headers;
 };
 
-const parseResponseContent = (responseJson: unknown): string => {
-  if (
-    typeof responseJson !== 'object' ||
-    responseJson === null ||
-    !('choices' in responseJson) ||
-    !Array.isArray(responseJson.choices)
-  ) {
-    return '';
-  }
-
-  const firstChoice = responseJson.choices[0] as { message?: { content?: unknown } } | undefined;
-  const rawContent = firstChoice?.message?.content;
-
-  if (typeof rawContent === 'string') {
-    return rawContent;
-  }
-
-  if (Array.isArray(rawContent)) {
-    const contentPart = rawContent.find(
-      (part): part is { type?: string; text?: string } =>
-        typeof part === 'object' && part !== null && 'text' in part
-    );
-
-    if (contentPart?.text) {
-      return contentPart.text;
-    }
-  }
-
-  return '';
+const buildTranslatorUrl = (path: '/detect' | '/translate', query = ''): string => {
+  const baseUrl = (TRANSLATOR_ENDPOINT ?? '').replace(/\/+$/, '');
+  return `${baseUrl}${path}?api-version=3.0${query}`;
 };
 
-const callFoundryForJson = async <T>(
-  messages: FoundryMessage[],
-  schema: z.ZodType<T>,
-  maxTokens = 800
-): Promise<T | null> => {
-  if (!FOUNDRY_ENDPOINT) {
+const detectLanguage = async (text: string) => {
+  if (!TRANSLATOR_ENDPOINT || !TRANSLATOR_KEY) {
     return null;
   }
 
-  const endpointUrl =
-    FOUNDRY_API_VERSION && !FOUNDRY_ENDPOINT.includes('api-version=')
-      ? `${FOUNDRY_ENDPOINT}${FOUNDRY_ENDPOINT.includes('?') ? '&' : '?'}api-version=${FOUNDRY_API_VERSION}`
-      : FOUNDRY_ENDPOINT;
-
-  const response = await fetch(endpointUrl, {
+  const response = await fetch(buildTranslatorUrl('/detect'), {
     method: 'POST',
-    headers: getFoundryHeaders(),
-    body: JSON.stringify({
-      ...(FOUNDRY_MODEL ? { model: FOUNDRY_MODEL } : {}),
-      messages,
-      temperature: 0,
-      max_tokens: maxTokens,
-      response_format: { type: 'json_object' },
-    }),
+    headers: getTranslatorHeaders(),
+    body: JSON.stringify([{ Text: text }]),
   });
 
   if (!response.ok) {
@@ -122,85 +77,50 @@ const callFoundryForJson = async <T>(
   }
 
   const responseJson: unknown = await response.json();
-  const textContent = parseResponseContent(responseJson);
+  const parsed = translatorDetectResponseSchema.safeParse(responseJson);
 
-  if (!textContent) {
+  if (!parsed.success || parsed.data.length === 0) {
     return null;
   }
 
-  try {
-    const parsed: unknown = JSON.parse(textContent);
-    const safeParsed = schema.safeParse(parsed);
-    return safeParsed.success ? safeParsed.data : null;
-  } catch {
-    return null;
-  }
-};
-
-const detectLanguage = async (text: string) => {
-  const payload = {
-    text,
-    instruction:
-      'Detect the language of the input text. If it is English, set isEnglish=true. Return only JSON.',
-  };
-
-  return callFoundryForJson(
-    [
-      {
-        role: 'system',
-        content:
-          'You are a strict language detector. Return JSON only with keys: languageCode, isEnglish.',
-      },
-      {
-        role: 'user',
-        content: JSON.stringify(payload),
-      },
-    ],
-    languageDetectionSchema,
-    200
-  );
+  return parsed.data[0];
 };
 
 const translateTexts = async (
   texts: string[],
   targetLanguage: string
 ): Promise<string[] | null> => {
+  if (!TRANSLATOR_ENDPOINT || !TRANSLATOR_KEY) {
+    return null;
+  }
+
   if (texts.length === 0) {
     return [];
   }
 
-  const payload = {
-    targetLanguage,
-    texts,
-    rules: [
-      'Preserve meaning and intent.',
-      'Do not add commentary.',
-      'Keep recipe ingredient names precise.',
-      'Return array length equal to input texts length.',
-    ],
-  };
-
-  const translated = await callFoundryForJson(
-    [
-      {
-        role: 'system',
-        content:
-          'You are a strict translation engine. Return JSON only with key translatedTexts (string array).',
-      },
-      {
-        role: 'user',
-        content: JSON.stringify(payload),
-      },
-    ],
-    translationBatchSchema,
-    1200
+  const response = await fetch(
+    buildTranslatorUrl('/translate', `&to=${encodeURIComponent(targetLanguage)}`),
+    {
+      method: 'POST',
+      headers: getTranslatorHeaders(),
+      body: JSON.stringify(texts.map((text) => ({ Text: text }))),
+    }
   );
 
-  if (!translated || translated.translatedTexts.length !== texts.length) {
+  if (!response.ok) {
     return null;
   }
 
-  return translated.translatedTexts;
+  const responseJson: unknown = await response.json();
+  const parsed = translatorTranslateResponseSchema.safeParse(responseJson);
+
+  if (!parsed.success || parsed.data.length !== texts.length) {
+    return null;
+  }
+
+  const translatedTexts = parsed.data.map((entry) => entry.translations[0]?.text ?? '');
+
+  return translatedTexts.every((text) => text.length > 0) ? translatedTexts : null;
 };
 
 export const resolveConversationLanguage = async ({
@@ -215,13 +135,15 @@ export const resolveConversationLanguage = async ({
     localizeTextsForUser: async (texts) => texts,
   };
 
-  if (!hasFoundryConfig()) {
+  if (!hasTranslatorConfig()) {
     return fallbackResult;
   }
 
   try {
     const detectedLanguage = await detectLanguage(latestUserMessage);
-    if (!detectedLanguage || detectedLanguage.isEnglish) {
+    const sourceLanguageCode = detectedLanguage?.language.toLowerCase();
+
+    if (!sourceLanguageCode || sourceLanguageCode === 'en') {
       return fallbackResult;
     }
 
@@ -237,8 +159,8 @@ export const resolveConversationLanguage = async ({
       userHistoryTexts.push(message.content);
     });
 
-    const translatedUserHistory = await translateTexts(userHistoryTexts, 'English');
-    const translatedLatestBatch = await translateTexts([latestUserMessage], 'English');
+    const translatedUserHistory = await translateTexts(userHistoryTexts, 'en');
+    const translatedLatestBatch = await translateTexts([latestUserMessage], 'en');
     const translatedLatestUserMessage = translatedLatestBatch?.[0];
 
     if (!translatedLatestUserMessage) {
@@ -262,12 +184,12 @@ export const resolveConversationLanguage = async ({
     }
 
     return {
-      sourceLanguageCode: detectedLanguage.languageCode.toLowerCase(),
+      sourceLanguageCode,
       isEnglish: false,
       conversationHistoryForProcessing: translatedHistory,
       latestUserMessageForProcessing: translatedLatestUserMessage,
       localizeTextsForUser: async (texts) => {
-        const translated = await translateTexts(texts, detectedLanguage.languageCode);
+        const translated = await translateTexts(texts, sourceLanguageCode);
         return translated ?? texts;
       },
     };

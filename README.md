@@ -196,15 +196,13 @@ recipe-finder/
 
 AI multilingual support (optional, for AI chat translation flow):
 
-| Variable                                  | Description                                                                                   | Required |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------- | -------- |
-| `AZURE_FOUNDRY_PHI4_CHAT_COMPLETIONS_URL` | Full Azure AI Foundry chat completions endpoint URL for your Phi-4 deployment                 | Optional |
-| `AZURE_FOUNDRY_API_KEY`                   | API key for the Foundry endpoint                                                              | Optional |
-| `AZURE_FOUNDRY_MODEL`                     | Model/deployment name (sent as `model` in request body when provided)                         | Optional |
-| `AZURE_FOUNDRY_API_VERSION`               | API version appended as `api-version` query parameter if not already included in endpoint URL | Optional |
-| `AZURE_FOUNDRY_AUTH_SCHEME`               | Auth style: `api-key` (default) or `bearer`                                                   | Optional |
+| Variable                  | Description                                                                    | Required |
+| ------------------------- | ------------------------------------------------------------------------------ | -------- |
+| `AZURE_TRANSLATOR_ENDPOINT` | Azure Translator Text endpoint base URL, for example `https://api.cognitive.microsofttranslator.com` | Optional |
+| `AZURE_TRANSLATOR_KEY`      | API key for Azure Translator Text                                             | Optional |
+| `AZURE_TRANSLATOR_REGION`   | Azure resource region header required by many Translator resources            | Optional |
 
-**Note:** Keep this key server-side only (no `NEXT_PUBLIC_` prefix).
+**Note:** Keep these values server-side only (no `NEXT_PUBLIC_` prefix).
 
 ## 🌐 API Endpoints Used
 
