@@ -47,6 +47,32 @@ describe('ruleBasedFilterExtractor', () => {
     });
   });
 
+  it('treats a standalone plural ingredient reply as includeIngredients', () => {
+    const filters = extractFiltersFromConversation({
+      conversationHistory: [{ role: 'user', content: 'I want a snack' }],
+      latestUserMessage: 'strawberries',
+      baseFilters: {},
+    });
+
+    expect(filters).toEqual({
+      type: 'snack',
+      includeIngredients: 'strawberries',
+    });
+  });
+
+  it('preserves a standalone non-english ingredient reply when translation is unavailable', () => {
+    const filters = extractFiltersFromConversation({
+      conversationHistory: [{ role: 'user', content: 'I want a snack' }],
+      latestUserMessage: 'zēmenes',
+      baseFilters: {},
+    });
+
+    expect(filters).toEqual({
+      type: 'snack',
+      includeIngredients: 'zēmenes',
+    });
+  });
+
   it('keeps previous ingredients when user explicitly indicates addition', () => {
     const filters = extractFiltersFromConversation({
       conversationHistory: [{ role: 'user', content: 'Lunch with chicken' }],

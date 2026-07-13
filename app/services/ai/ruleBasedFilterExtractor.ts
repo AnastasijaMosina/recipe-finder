@@ -59,8 +59,8 @@ const RESET_INTENT_PATTERNS: RegExp[] = [
   /\bstart\s+over\b/i,
   /\bfrom\s+scratch\b/i,
   /\bscratch\s+that\b/i,
-  /\bi\s+chang\w*\s+my\s+mind\b/i,
-  /\bchang\w*\s+my\s+mind\b/i,
+  /\bi\s+cha(?:n)?g\w*\s+my\s+mind\b/i,
+  /\bcha(?:n)?g\w*\s+my\s+mind\b/i,
 ];
 
 const ADDITIVE_INTENT_PATTERNS: RegExp[] = [
@@ -101,6 +101,14 @@ const STOP_WORDS = new Set([
   'meal',
   'type',
   'cuisine',
+  'yes',
+  'yeah',
+  'yep',
+  'ok',
+  'okay',
+  'sure',
+  'anything',
+  'whatever',
 ]);
 
 const splitCsv = (value?: string): string[] =>
@@ -133,16 +141,20 @@ const normalizeIngredientToken = (value: string): string =>
   value
     .trim()
     .toLowerCase()
-    .replace(/[^a-z\s-]/g, '')
+    .replace(/[^\p{L}\s-]/gu, '')
     .replace(/\s+/g, ' ');
 
 const splitIngredientPhrase = (value: string): string[] =>
   value
-    .split(/,|\band\b|\bor\b|\//i)
+    .split(/,|\band\b|\bor\b|\bfor\b|\//i)
     .map(normalizeIngredientToken)
     .filter(
       (token) =>
-        token.length > 1 && token.length <= 40 && !STOP_WORDS.has(token) && !/^\d+$/.test(token)
+        token.length > 1 &&
+        token.length <= 40 &&
+        !STOP_WORDS.has(token) &&
+        !/\brecipes?\b/.test(token) &&
+        !/^\d+$/.test(token)
     );
 
 const hasNegativeIngredientPattern = (normalized: string, keyword: string): boolean => {
@@ -271,6 +283,38 @@ const extractIncludedIngredients = (
   return results;
 };
 
+const extractStandaloneIngredientReply = (
+  normalized: string,
+  currentFilters: SearchQueryParams,
+  excludedIngredients: string[]
+): string[] => {
+  const wordCount = normalized.split(/\s+/).filter(Boolean).length;
+  const hasStructuredMatch = Boolean(
+    extractCuisine(normalized) ||
+    extractMealType(normalized) ||
+    extractMaxReadyTime(normalized) ||
+    excludedIngredients.length > 0 ||
+    RESET_INTENT_PATTERNS.some((pattern) => pattern.test(normalized)) ||
+    CLEAR_TIME_PATTERNS.some((pattern) => pattern.test(normalized))
+  );
+
+  if (hasStructuredMatch || wordCount === 0 || wordCount > 3 || /\brecipes?\b/i.test(normalized)) {
+    return [];
+  }
+
+  const currentIncluded = splitCsv(currentFilters.includeIngredients);
+  const tokens = splitIngredientPhrase(normalized).filter(
+    (ingredient) =>
+      !excludedIngredients.includes(ingredient) && !currentIncluded.includes(ingredient)
+  );
+
+  if (tokens.length === 0 || tokens.length > 3) {
+    return [];
+  }
+
+  return tokens;
+};
+
 const mergeTextIntoFilters = (
   currentFilters: SearchQueryParams,
   text: string
@@ -286,6 +330,10 @@ const mergeTextIntoFilters = (
 
   const extractedExcluded = extractExcludedIngredients(normalized);
   const extractedIncluded = extractIncludedIngredients(normalized, extractedExcluded);
+  const extractedStandaloneIngredients =
+    extractedIncluded.length === 0
+      ? extractStandaloneIngredientReply(normalized, currentFilters, extractedExcluded)
+      : [];
 
   const nextExcluded = shouldTreatAsAdditive
     ? [...currentExcluded]
@@ -296,11 +344,14 @@ const mergeTextIntoFilters = (
     ? [...currentIncluded]
     : extractedIncluded.length > 0
       ? [...extractedIncluded]
-      : currentIncluded;
+      : extractedStandaloneIngredients.length > 0
+        ? [...extractedStandaloneIngredients]
+        : currentIncluded;
 
   if (shouldTreatAsAdditive) {
     addUnique(nextExcluded, extractedExcluded);
     addUnique(nextIncluded, extractedIncluded);
+    addUnique(nextIncluded, extractedStandaloneIngredients);
   }
 
   // Excluded ingredients should never remain in includeIngredients.
