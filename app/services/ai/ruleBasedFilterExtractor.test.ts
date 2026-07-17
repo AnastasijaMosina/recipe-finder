@@ -129,4 +129,31 @@ describe('ruleBasedFilterExtractor', () => {
       includeIngredients: 'beef',
     });
   });
+
+  it('excludes ingredient when user says they have an allergy to it', () => {
+    const filters = extractFiltersFromConversation({
+      conversationHistory: [{ role: 'user', content: 'I want dinner with chicken' }],
+      latestUserMessage: 'I have allergy to nuts',
+      baseFilters: {},
+    });
+
+    expect(filters).toEqual({
+      type: 'dinner',
+      includeIngredients: 'chicken',
+      excludeIngredients: 'nuts',
+    });
+  });
+
+  it('handles multiple allergy exclusions from a single message', () => {
+    const filters = extractFiltersFromConversation({
+      conversationHistory: [{ role: 'user', content: 'Find lunch ideas' }],
+      latestUserMessage: 'I am allergic to shellfish and dairy',
+      baseFilters: {},
+    });
+
+    expect(filters).toEqual({
+      type: 'lunch',
+      excludeIngredients: 'shellfish,dairy',
+    });
+  });
 });

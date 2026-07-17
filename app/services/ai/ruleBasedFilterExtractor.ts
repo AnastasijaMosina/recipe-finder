@@ -162,7 +162,7 @@ const hasNegativeIngredientPattern = (normalized: string, keyword: string): bool
   const keywordPattern = `${escapedKeyword}(?:es|s)?`;
 
   return new RegExp(
-    `\\b(?:no|without|exclude|excluding|avoid|except|anything\\s+except|anything\\s+but)\\s+${keywordPattern}\\b`
+    `\\b(?:no|without|exclude|excluding|avoid|except|anything\\s+except|anything\\s+but|allergic\\s+to|allergy\\s+to|intolerant\\s+to)\\s+${keywordPattern}\\b`
   ).test(normalized);
 };
 
@@ -230,11 +230,26 @@ const extractExcludedIngredients = (normalized: string): string[] => {
 
   const clauseMatches = [
     ...normalized.matchAll(
-      /\b(?:no|without|exclude|excluding|avoid)\s+([a-z\s,-]+?)(?=\b(?:with|for|under|less than|in|on|please)\b|[.!?]|$)/gi
+      /\b(?:no|without|exclude|excluding|avoid|allergic\s+to|allergy\s+to|intolerant\s+to)\s+([a-z\s,-]+?)(?=\b(?:with|for|under|less than|in|on|please)\b|[.!?]|$)/gi
     ),
   ];
 
   for (const match of clauseMatches) {
+    const clause = match[1];
+    if (!clause) {
+      continue;
+    }
+
+    addUnique(results, splitIngredientPhrase(clause));
+  }
+
+  const nounPhraseMatches = [
+    ...normalized.matchAll(
+      /\b([a-z\s,-]+?)\s+allerg(?:y|ies)\b(?=\b(?:with|for|under|less than|in|on|please)\b|[.!?]|$)/gi
+    ),
+  ];
+
+  for (const match of nounPhraseMatches) {
     const clause = match[1];
     if (!clause) {
       continue;
