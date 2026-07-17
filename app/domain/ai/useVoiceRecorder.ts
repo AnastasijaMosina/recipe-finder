@@ -142,19 +142,20 @@ export const useVoiceRecorder = ({
   }, [recordingStatus, startRecognitionSession, stopRecording]);
 
   const togglePauseRecording = useCallback(() => {
-    const speechRecognition = speechRecognitionRef.current;
-
-    if (!speechRecognition) {
-      return;
-    }
-
     if (recordingStatus === 'recording') {
+      const speechRecognition = speechRecognitionRef.current;
+
+      if (!speechRecognition) {
+        return;
+      }
+
       pauseRequestedRef.current = true;
       speechRecognition.stop();
       return;
     }
 
     if (recordingStatus === 'paused') {
+      stopRequestedRef.current = false;
       const resumed = startRecognitionSession();
 
       if (!resumed) {

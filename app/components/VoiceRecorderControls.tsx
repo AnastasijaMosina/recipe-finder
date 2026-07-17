@@ -15,20 +15,21 @@ const VoiceRecorderControls = ({
   onTogglePauseRecording,
   onStopRecording,
 }: VoiceRecorderControlsProps) => {
+  const isRecording = recordingStatus === 'recording';
+  const primaryButtonLabel = isRecording ? '' : '🎙️';
+  const primaryButtonAriaLabel = isRecording ? 'Recording in progress' : 'Start voice recording';
+
   return (
     <>
       <button
         type="button"
-        className={`btn btn-secondary btn-medium ai-voice-toggle ${recordingStatus !== 'idle' ? 'is-recording' : ''}`}
+        className={`btn btn-secondary btn-medium ai-voice-toggle ${isRecording ? 'is-recording' : ''}`}
         onClick={onStartRecording}
         disabled={disabled || recordingStatus !== 'idle'}
-        aria-label={recordingStatus === 'idle' ? 'Start voice recording' : 'Recording in progress'}
+        aria-label={primaryButtonAriaLabel}
       >
-        <span
-          className={recordingStatus === 'idle' ? '' : 'ai-recording-icon'}
-          aria-hidden="true"
-        />
-        {recordingStatus === 'idle' ? '⏺️' : 'Recording'}
+        {isRecording && <span className="ai-recording-icon" aria-hidden="true" />}
+        {primaryButtonLabel}
       </button>
 
       {recordingStatus !== 'idle' && (
