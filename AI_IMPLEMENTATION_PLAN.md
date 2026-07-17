@@ -356,3 +356,28 @@ Feature is complete when:
 7. Errors are user-friendly and schema-validated.
 8. Unit, component, and e2e tests pass.
 9. Documentation is updated.
+
+---
+
+## Extra
+
+## Voice Input Plan
+
+1. Add mic button + recording state + interim transcript shown in input.
+2. Manual “Send” only for final text.
+3. English only first, but preserve detected language metadata.
+4. Non-English full flow: keep transcript in original language, process through existing translation mediator, respond localized.
+
+## Browser STT vs Azure STT
+
+See detailed comparison and security notes in NOTES-AI-VOICE.md.
+
+## Practical Recommendation
+
+1. Start with Browser STT for rapid UX validation.
+2. Keep your voice layer behind a single abstraction so you can swap providers.
+3. Move to Azure STT when you need:
+   1. consistent multilingual quality,
+   2. enterprise governance/compliance,
+   3. reliable cross-browser behavior at scale.
+4. Use feature flags so both paths can coexist during rollout.
