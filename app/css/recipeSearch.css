@@ -636,9 +636,78 @@
 
 .ai-chat-input-row {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr auto auto;
   gap: 0.75rem;
   align-items: center;
+}
+
+.ai-voice-toggle {
+  min-width: 8.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+}
+
+.ai-voice-toggle.is-recording {
+  border-color: #ef4444;
+  color: #7f1d1d;
+  background-color: #fee2e2;
+}
+
+.ai-mic-icon,
+.ai-recording-icon {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  flex-shrink: 0;
+}
+
+.ai-mic-icon {
+  border: 2px solid currentColor;
+  border-radius: 0.5rem 0.5rem 0.35rem 0.35rem;
+  position: relative;
+}
+
+.ai-mic-icon::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: -0.45rem;
+  width: 0.45rem;
+  height: 0.3rem;
+  border: 2px solid currentColor;
+  border-top: none;
+  border-radius: 0 0 0.25rem 0.25rem;
+}
+
+.ai-recording-icon {
+  border-radius: 999px;
+  background-color: #dc2626;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.2);
+  animation: ai-recording-pulse 1.1s ease-in-out infinite;
+}
+
+.ai-recording-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@keyframes ai-recording-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(0.85);
+    opacity: 0.75;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .ai-chip-list {
@@ -707,6 +776,14 @@
 @media (max-width: 768px) {
   .ai-chat-input-row {
     grid-template-columns: 1fr;
+  }
+
+  .ai-recording-controls {
+    width: 100%;
+  }
+
+  .ai-recording-controls .btn {
+    flex: 1;
   }
 
   .ai-filters-header {

@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import ErrorMessage from '../components/ErrorMessage';
 import SearchResults from '../components/SearchResults';
+import VoiceRecorderControls from '../components/VoiceRecorderControls';
 import type { SearchQueryParams } from '../domain/search/searchFiltersSchema';
 import {
   type AiConversationTurnResult,
   useAiConversation,
 } from '../domain/ai/AiConversationContext';
+import { useVoiceRecorder } from '../domain/ai/useVoiceRecorder';
 import { spoonacularApi } from '../services/spoonacularApi';
 import { mapAiFiltersToSearchParams } from '../services/ai/aiSearchAdapter';
 
@@ -30,6 +32,9 @@ const AiPage = () => {
   const chatThreadRef = useRef<HTMLElement | null>(null);
   const { state, setInput, startSubmit, applyAssistantResponse, setError, finishSubmit } =
     useAiConversation();
+  const { recordingStatus, startRecording, stopRecording, togglePauseRecording } = useVoiceRecorder(
+    { onError: setError }
+  );
 
   const { messages, input, possibleAnswers, filters, readyToSearch, errorMessage, isSubmitting } =
     state;
@@ -164,6 +169,17 @@ const AiPage = () => {
             placeholder="Example: I want a quick chicken dinner with no dairy"
             disabled={isSubmitting}
           />
+
+          <VoiceRecorderControls
+            recordingStatus={recordingStatus}
+            disabled={isSubmitting}
+            onStartRecording={() => {
+              void startRecording();
+            }}
+            onTogglePauseRecording={togglePauseRecording}
+            onStopRecording={stopRecording}
+          />
+
           <button
             type="submit"
             className="btn btn-primary btn-medium"
