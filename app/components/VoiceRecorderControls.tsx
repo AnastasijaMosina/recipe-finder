@@ -25,10 +25,10 @@ const VoiceRecorderControls = ({
         aria-label={recordingStatus === 'idle' ? 'Start voice recording' : 'Recording in progress'}
       >
         <span
-          className={recordingStatus === 'idle' ? 'ai-mic-icon' : 'ai-recording-icon'}
+          className={recordingStatus === 'idle' ? '' : 'ai-recording-icon'}
           aria-hidden="true"
         />
-        {recordingStatus === 'idle' ? 'Mic' : 'Recording'}
+        {recordingStatus === 'idle' ? '⏺️' : 'Recording'}
       </button>
 
       {recordingStatus !== 'idle' && (
@@ -39,7 +39,7 @@ const VoiceRecorderControls = ({
             onClick={onTogglePauseRecording}
             disabled={disabled}
           >
-            {recordingStatus === 'paused' ? 'Continue' : 'Pause'}
+            {recordingStatus === 'paused' ? '▶️' : '⏸️'}
           </button>
           <button
             type="button"
@@ -47,7 +47,7 @@ const VoiceRecorderControls = ({
             onClick={onStopRecording}
             disabled={disabled}
           >
-            Stop
+            ⏹️
           </button>
         </div>
       )}
