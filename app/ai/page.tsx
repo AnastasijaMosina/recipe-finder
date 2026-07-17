@@ -30,10 +30,18 @@ const FILTER_FIELDS: Array<{ key: keyof SearchQueryParams; label: string }> = [
 const AiPage = () => {
   const router = useRouter();
   const chatThreadRef = useRef<HTMLElement | null>(null);
+  const voiceInputPrefixRef = useRef('');
   const { state, setInput, startSubmit, applyAssistantResponse, setError, finishSubmit } =
     useAiConversation();
   const { recordingStatus, startRecording, stopRecording, togglePauseRecording } = useVoiceRecorder(
-    { onError: setError }
+    {
+      onError: setError,
+      onTranscriptChange: (transcript) => {
+        const prefix = voiceInputPrefixRef.current.trim();
+        const nextInput = prefix ? `${prefix} ${transcript}`.trim() : transcript;
+        setInput(nextInput);
+      },
+    }
   );
 
   const { messages, input, possibleAnswers, filters, readyToSearch, errorMessage, isSubmitting } =
@@ -122,6 +130,16 @@ const AiPage = () => {
     await sendMessage(input);
   };
 
+  const startVoiceRecording = () => {
+    voiceInputPrefixRef.current = input.trim();
+    void startRecording();
+  };
+
+  const stopVoiceRecording = () => {
+    stopRecording();
+    voiceInputPrefixRef.current = '';
+  };
+
   return (
     <main className="recipe-main">
       <div className="search-container ai-chat-layout">
@@ -173,11 +191,9 @@ const AiPage = () => {
           <VoiceRecorderControls
             recordingStatus={recordingStatus}
             disabled={isSubmitting}
-            onStartRecording={() => {
-              void startRecording();
-            }}
+            onStartRecording={startVoiceRecording}
             onTogglePauseRecording={togglePauseRecording}
-            onStopRecording={stopRecording}
+            onStopRecording={stopVoiceRecording}
           />
 
           <button
