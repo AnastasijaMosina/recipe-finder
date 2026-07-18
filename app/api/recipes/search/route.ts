@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     if (type) queryParams.set('type', type);
     if (maxReadyTime) queryParams.set('maxReadyTime', maxReadyTime);
 
-    queryParams.set('number', '10');
+    queryParams.set('number', '12');
     queryParams.set('addRecipeInformation', 'true');
 
     const response = await fetchWithRetry(
