@@ -1,47 +1,47 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import useSWR from 'swr';
 import '../css/recipeSearch.css';
 import RecipeSearchForm from '../components/RecipeSearchForm';
 import SearchResults from '../components/SearchResults';
 import ErrorMessage from '../components/ErrorMessage';
-import { useState } from 'react';
-import { Recipe, spoonacularApi } from '../services/spoonacularApi';
+import { spoonacularApi } from '../services/spoonacularApi';
+import type { RecipeSearchFilters } from '../domain/search/searchFiltersSchema';
+import { applyRecipeSearchFilters } from '../utils/recipeSearchFilters';
 
 const SearchPage = () => {
-  const [cuisineType, setCuisineType] = useState('');
-  const [includeIngredients, setIncludeIngredients] = useState('');
-  const [excludeIngredients, setExcludeIngredients] = useState('');
-  const [mealType, setMealType] = useState('');
-  const [maxReadyTime, setMaxReadyTime] = useState('');
-  const [searchResults, setSearchResults] = useState<Recipe[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
-
   const router = useRouter();
+  const searchParams = useSearchParams();
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSearching(true);
-    setSearchError(null);
-    setSearchResults([]);
+  // URL is the single source of truth for active filters
+  const filtersFromUrl: RecipeSearchFilters = {
+    cuisine: searchParams.get('cuisine') ?? undefined,
+    includeIngredients: searchParams.get('includeIngredients') ?? undefined,
+    excludeIngredients: searchParams.get('excludeIngredients') ?? undefined,
+    type: searchParams.get('type') ?? undefined,
+    maxReadyTime: searchParams.get('maxReadyTime') ?? undefined,
+  };
 
-    try {
-      const results = await spoonacularApi.searchRecipes({
-        cuisine: cuisineType,
-        includeIngredients: includeIngredients,
-        excludeIngredients: excludeIngredients,
-        type: mealType,
-        maxReadyTime: maxReadyTime,
-      });
-      setSearchResults(results);
-      console.log('Search Results:', results);
-    } catch (err) {
-      setSearchError(err instanceof Error ? err.message : 'Failed to search recipes');
-      console.error('Error searching recipes:', err);
-    } finally {
-      setIsSearching(false);
-    }
+  const hasFilters = Object.values(filtersFromUrl).some(Boolean);
+  const searchKey = hasFilters ? (['recipe-search', filtersFromUrl] as const) : null;
+
+  const {
+    data: searchResults = [],
+    error: searchError,
+    isLoading,
+    isValidating,
+  } = useSWR(searchKey, ([, filters]) => spoonacularApi.searchRecipes(filters), {
+    keepPreviousData: true,
+    revalidateIfStale: false,
+  });
+
+  const isSearching = isLoading || isValidating;
+
+  const handleSearch = (filters: RecipeSearchFilters) => {
+    const params = new URLSearchParams();
+    applyRecipeSearchFilters(params, filters);
+    router.push(`/search?${params.toString()}`);
   };
 
   return (
@@ -51,21 +51,25 @@ const SearchPage = () => {
           ← Back to Home
         </button>
         <RecipeSearchForm
-          cuisineType={cuisineType}
-          setCuisineType={setCuisineType}
-          includeIngredients={includeIngredients}
-          setIncludeIngredients={setIncludeIngredients}
-          excludeIngredients={excludeIngredients}
-          setExcludeIngredients={setExcludeIngredients}
-          mealType={mealType}
-          setMealType={setMealType}
-          maxReadyTime={maxReadyTime}
-          setMaxReadyTime={setMaxReadyTime}
           onSubmit={handleSearch}
           isSearching={isSearching}
+          defaultValues={{
+            cuisineType: filtersFromUrl.cuisine ?? '',
+            includeIngredients: filtersFromUrl.includeIngredients ?? '',
+            excludeIngredients: filtersFromUrl.excludeIngredients ?? '',
+            mealType: filtersFromUrl.type ?? '',
+            maxReadyTime: filtersFromUrl.maxReadyTime ?? '',
+          }}
         />
 
-        {searchError && <ErrorMessage message={searchError} style={{ marginTop: '1.5rem' }} />}
+        {searchError && (
+          <ErrorMessage
+            message={
+              searchError instanceof Error ? searchError.message : 'Failed to search recipes'
+            }
+            style={{ marginTop: '1.5rem' }}
+          />
+        )}
 
         <SearchResults results={searchResults} />
       </div>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useFavorites } from '../hooks/useFavorites';
+import { useFavorites } from '../domain/favorites/FavoritesContext';
 import RecipeCard from '../components/RecipeCard';
 import '../css/recipeSearch.css';
 

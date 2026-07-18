@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useFavorites } from '../hooks/useFavorites';
+import { useFavorites } from '../domain/favorites/FavoritesContext';
 
 const Header = () => {
   const pathname = usePathname();
@@ -12,16 +12,25 @@ const Header = () => {
     <header className="recipe-header">
       <div className="recipe-header-content">
         <h1 className="recipe-title">Recipe Finder</h1>
-        <nav className="recipe-nav">
-          <Link href="/" className={`nav-link ${pathname === '/' ? 'active' : ''}`}>
+        <nav className="recipe-nav" aria-label="Main navigation">
+          <Link
+            href="/"
+            className={`nav-link ${pathname === '/' ? 'active' : ''}`}
+            aria-current={pathname === '/' ? 'page' : undefined}
+          >
             🏠 Home
           </Link>
-          <Link href="/search" className={`nav-link ${pathname === '/search' ? 'active' : ''}`}>
+          <Link
+            href="/search"
+            className={`nav-link ${pathname === '/search' ? 'active' : ''}`}
+            aria-current={pathname === '/search' ? 'page' : undefined}
+          >
             🔍 Search
           </Link>
           <Link
             href="/favorites"
             className={`nav-link ${pathname === '/favorites' ? 'active' : ''}`}
+            aria-current={pathname === '/favorites' ? 'page' : undefined}
           >
             ⭐ Favorites {favorites.length > 0 && `(${favorites.length})`}
           </Link>

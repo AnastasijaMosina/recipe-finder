@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Image from 'next/image';
 import { Recipe } from '../services/spoonacularApi';
 import FavoriteButton from './FavoriteButton';
@@ -7,10 +8,10 @@ interface RecipeCardProps {
   variant?: 'default' | 'featured';
 }
 
-export default function RecipeCard({ recipe, variant = 'default' }: RecipeCardProps) {
+function RecipeCard({ recipe, variant = 'default' }: RecipeCardProps) {
   if (variant === 'featured') {
     return (
-      <div className="recipe-card-featured">
+      <article className="recipe-card-featured">
         <FavoriteButton recipe={recipe} className="favorite-btn-featured" />
         <div className="recipe-card-featured-content">
           {recipe.image && (
@@ -71,16 +72,17 @@ export default function RecipeCard({ recipe, variant = 'default' }: RecipeCardPr
             target="_blank"
             rel="noopener noreferrer"
             className="recipe-card-featured-link btn btn-primary"
+            aria-label={`View full recipe for ${recipe.title} (opens in new window)`}
           >
             View Full Recipe →
           </a>
         )}
-      </div>
+      </article>
     );
   }
 
   return (
-    <div className="recipe-card">
+    <article className="recipe-card">
       <FavoriteButton recipe={recipe} className="favorite-btn-default" />
       {recipe.image && (
         <Image
@@ -103,11 +105,17 @@ export default function RecipeCard({ recipe, variant = 'default' }: RecipeCardPr
             target="_blank"
             rel="noopener noreferrer"
             className="recipe-card-link"
+            aria-label={`View recipe for ${recipe.title} (opens in new window)`}
           >
             View Recipe →
           </a>
         )}
       </div>
-    </div>
+    </article>
   );
 }
+
+// Memoize to prevent rerenders when parent updates but recipe stays the same
+export default memo(RecipeCard, (prevProps, nextProps) => {
+  return prevProps.recipe.id === nextProps.recipe.id && prevProps.variant === nextProps.variant;
+});

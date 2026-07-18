@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './css/globals.css';
 import Header from './components/Header';
+import { FavoritesProvider } from './domain/favorites/FavoritesContext';
+import SWRProvider from './providers/SWRProvider';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -26,8 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased recipe-page`}>
-        <Header />
-        {children}
+        <SWRProvider>
+          <FavoritesProvider>
+            <Header />
+            {children}
+          </FavoritesProvider>
+        </SWRProvider>
       </body>
     </html>
   );

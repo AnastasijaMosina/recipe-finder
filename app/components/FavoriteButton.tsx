@@ -1,6 +1,7 @@
 'use client';
 
-import { useFavorites } from '../hooks/useFavorites';
+import { memo } from 'react';
+import { useFavorites } from '../domain/favorites/FavoritesContext';
 import { Recipe } from '../services/spoonacularApi';
 
 interface FavoriteButtonProps {
@@ -8,7 +9,7 @@ interface FavoriteButtonProps {
   className?: string;
 }
 
-export default function FavoriteButton({ recipe, className = '' }: FavoriteButtonProps) {
+function FavoriteButton({ recipe, className = '' }: FavoriteButtonProps) {
   const { toggleFavorite, isFavorite } = useFavorites();
   const favorited = isFavorite(recipe.id);
 
@@ -23,9 +24,15 @@ export default function FavoriteButton({ recipe, className = '' }: FavoriteButto
       onClick={handleClick}
       className={`favorite-btn ${favorited ? 'favorited' : ''} ${className}`}
       aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
+      aria-pressed={favorited}
       title={favorited ? 'Remove from favorites' : 'Add to favorites'}
     >
       {favorited ? '⭐' : '☆'}
     </button>
   );
 }
+
+// Memoize with custom comparison to only rerender if recipe.id or className changes
+export default memo(FavoriteButton, (prevProps, nextProps) => {
+  return prevProps.recipe.id === nextProps.recipe.id && prevProps.className === nextProps.className;
+});
