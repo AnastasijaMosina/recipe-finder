@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const recipeSearchFormSchema = z.object({
-  cuisineType: z.string().min(1, 'Cuisine type is required.'),
+  cuisineType: z.string(),
   includeIngredients: z.string(),
   excludeIngredients: z.string(),
   mealType: z.string().min(1, 'Meal type is required.'),

@@ -91,7 +91,7 @@ export default function RecipeSearchForm({
         {/* Cuisine Type */}
         <div className="form-field">
           <label htmlFor="cuisineType" className="form-label">
-            Cuisine Type *
+            Cuisine Type
           </label>
           <select
             id="cuisineType"
@@ -99,7 +99,6 @@ export default function RecipeSearchForm({
             className="form-select"
             aria-invalid={Boolean(errors.cuisineType)}
             aria-describedby={errors.cuisineType ? 'cuisineType-error' : undefined}
-            required
           >
             <option value="">Select cuisine type...</option>
             {CUISINES.map((cuisine) => (
